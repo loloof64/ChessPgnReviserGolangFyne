@@ -8,6 +8,7 @@ import (
 
 // Renderer renders a ChessBoard.
 type Renderer struct {
+	boardWidget *ChessBoard
 }
 
 // Layout layouts the board elements.
@@ -17,7 +18,8 @@ func (renderer Renderer) Layout(size fyne.Size) {
 
 // MinSize computes the minimum size.
 func (renderer Renderer) MinSize() fyne.Size {
-	return fyne.NewSize(300, 300)
+	size := renderer.boardWidget.size
+	return fyne.NewSize(size, size)
 }
 
 // Refresh refreshes the board.

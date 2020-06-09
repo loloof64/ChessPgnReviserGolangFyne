@@ -10,7 +10,7 @@ func main() {
 
 	mainWindow := app.NewWindow("Chess Pgn Reviser")
 	mainWindow.SetContent(
-		chessboard.NewChessBoard(),
+		chessboard.NewChessBoard(800),
 	)
 
 	mainWindow.ShowAndRun()

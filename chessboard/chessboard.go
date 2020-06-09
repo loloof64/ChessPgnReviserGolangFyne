@@ -8,17 +8,23 @@ import (
 // ChessBoard is a chess board widget.
 type ChessBoard struct {
 	widget.BaseWidget
+
+	size int
 }
 
 // CreateRenderer creates the board renderer.
 func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	board.ExtendBaseWidget(board)
-	return Renderer{}
+	return Renderer{
+		boardWidget: board,
+	}
 }
 
 // NewChessBoard creates a new chess board.
-func NewChessBoard() *ChessBoard {
-	chessBoard := &ChessBoard{}
+func NewChessBoard(size int) *ChessBoard {
+	chessBoard := &ChessBoard{
+		size: size,
+	}
 	chessBoard.ExtendBaseWidget(chessBoard)
 
 	return chessBoard
