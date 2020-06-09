@@ -2,14 +2,16 @@ package main
 
 import (
 	"fyne.io/fyne/app"
-	"fyne.io/fyne/widget"
+	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
 )
 
 func main() {
 	app := app.New()
 
-	w := app.NewWindow("Chess Pgn Reviser")
-	w.SetContent(widget.NewLabel("Hello World !"))
+	mainWindow := app.NewWindow("Chess Pgn Reviser")
+	mainWindow.SetContent(
+		chessboard.NewChessBoard(),
+	)
 
-	w.ShowAndRun()
+	mainWindow.ShowAndRun()
 }
