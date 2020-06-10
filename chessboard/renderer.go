@@ -12,11 +12,14 @@ import (
 type Renderer struct {
 	boardWidget *ChessBoard
 
-	cells  [8][8]*canvas.Rectangle
-	pieces [8][8]*canvas.Image
+	cells       [8][8]*canvas.Rectangle
+	pieces      [8][8]*canvas.Image
+	filesCoords [2][8]*canvas.Text
+	ranksCoords [2][8]*canvas.Text
 
-	generalObjects []fyne.CanvasObject
-	piecesObjects  []fyne.CanvasObject
+	cellsObjects  []fyne.CanvasObject
+	piecesObjects []fyne.CanvasObject
+	coordsObjects []fyne.CanvasObject
 }
 
 // Layout layouts the board elements.
@@ -43,6 +46,43 @@ func (renderer Renderer) Layout(size fyne.Size) {
 			}
 		}
 	}
+
+	coordsFontSize := int(float64(cellsLength) * 0.25)
+
+	fileCoordsOffset := int(float64(cellsLength) * 1.0)
+	rankCoordsOffset := int(float64(cellsLength) * 0.8)
+
+	for file := 0; file < 8; file++ {
+		x := fileCoordsOffset + cellsLength*file
+		yTop := int(float64(cellsLength) * 0.015)
+		yBottom := int(float64(cellsLength) * 8.515)
+
+		topCoord := renderer.filesCoords[0][file]
+		topCoord.TextStyle = fyne.TextStyle{Bold: true}
+		topCoord.TextSize = coordsFontSize
+		topCoord.Move(fyne.Position{X: x, Y: yTop})
+
+		bottomCoord := renderer.filesCoords[1][file]
+		bottomCoord.TextStyle = fyne.TextStyle{Bold: true}
+		bottomCoord.TextSize = coordsFontSize
+		bottomCoord.Move(fyne.Position{X: x, Y: yBottom})
+	}
+
+	for rank := 0; rank < 8; rank++ {
+		y := rankCoordsOffset + cellsLength*rank
+		xLeft := int(float64(cellsLength) * 0.2)
+		xRight := int(float64(cellsLength) * 8.7)
+
+		leftCoord := renderer.ranksCoords[0][rank]
+		leftCoord.TextStyle = fyne.TextStyle{Bold: true}
+		leftCoord.TextSize = coordsFontSize
+		leftCoord.Move(fyne.Position{X: xLeft, Y: y})
+
+		rightCoord := renderer.ranksCoords[1][rank]
+		rightCoord.TextStyle = fyne.TextStyle{Bold: true}
+		rightCoord.TextSize = coordsFontSize
+		rightCoord.Move(fyne.Position{X: xRight, Y: y})
+	}
 }
 
 // MinSize computes the minimum size.
@@ -65,11 +105,15 @@ func (renderer Renderer) BackgroundColor() color.Color {
 func (renderer Renderer) Objects() []fyne.CanvasObject {
 	result := make([]fyne.CanvasObject, 0, 170)
 
-	for _, object := range renderer.generalObjects {
+	for _, object := range renderer.cellsObjects {
 		result = append(result, object)
 	}
 
 	for _, object := range renderer.piecesObjects {
+		result = append(result, object)
+	}
+
+	for _, object := range renderer.coordsObjects {
 		result = append(result, object)
 	}
 
