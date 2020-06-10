@@ -12,9 +12,11 @@ import (
 type Renderer struct {
 	boardWidget *ChessBoard
 
-	cells [][]*canvas.Rectangle
+	cells  [8][8]*canvas.Rectangle
+	pieces [8][8]*canvas.Image
 
-	objects []fyne.CanvasObject
+	generalObjects []fyne.CanvasObject
+	piecesObjects  []fyne.CanvasObject
 }
 
 // Layout layouts the board elements.
@@ -32,6 +34,13 @@ func (renderer Renderer) Layout(size fyne.Size) {
 
 			cellValue.Resize(cellsSize)
 			cellValue.Move(cellPosition)
+
+			currentPiece := renderer.pieces[lineIndex][colIndex]
+
+			if currentPiece != nil {
+				currentPiece.Resize(cellsSize)
+				currentPiece.Move(cellPosition)
+			}
 		}
 	}
 }
@@ -54,7 +63,17 @@ func (renderer Renderer) BackgroundColor() color.Color {
 
 // Objects returns the objects of the canvas of the renderer.
 func (renderer Renderer) Objects() []fyne.CanvasObject {
-	return renderer.objects
+	result := make([]fyne.CanvasObject, 0, 170)
+
+	for _, object := range renderer.generalObjects {
+		result = append(result, object)
+	}
+
+	for _, object := range renderer.piecesObjects {
+		result = append(result, object)
+	}
+
+	return result
 }
 
 // Destroy cleans up the renderer.
