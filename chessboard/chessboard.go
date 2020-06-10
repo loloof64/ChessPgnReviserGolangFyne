@@ -87,12 +87,22 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 		coordsObjects = append(coordsObjects, rightCoord)
 	}
 
+	var playerTurnColor color.Color
+	gameTurn := board.game.Position().Turn()
+	if gameTurn == chess.White {
+		playerTurnColor = color.White
+	} else {
+		playerTurnColor = color.Black
+	}
+	playerTurn := canvas.NewCircle(playerTurnColor)
+
 	return Renderer{
 		boardWidget:   board,
 		cells:         cells,
 		pieces:        pieces,
 		filesCoords:   filesCoords,
 		ranksCoords:   ranksCoords,
+		playerTurn:    playerTurn,
 		cellsObjects:  cellsObjects,
 		piecesObjects: piecesObjects,
 		coordsObjects: coordsObjects,

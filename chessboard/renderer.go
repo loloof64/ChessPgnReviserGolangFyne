@@ -16,6 +16,7 @@ type Renderer struct {
 	pieces      [8][8]*canvas.Image
 	filesCoords [2][8]*canvas.Text
 	ranksCoords [2][8]*canvas.Text
+	playerTurn  *canvas.Circle
 
 	cellsObjects  []fyne.CanvasObject
 	piecesObjects []fyne.CanvasObject
@@ -83,6 +84,11 @@ func (renderer Renderer) Layout(size fyne.Size) {
 		rightCoord.TextSize = coordsFontSize
 		rightCoord.Move(fyne.Position{X: xRight, Y: y})
 	}
+
+	turnCirclePlace := int(float64(cellsLength) * 8.5)
+	turnCircle := renderer.playerTurn
+	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
+	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
 }
 
 // MinSize computes the minimum size.
@@ -116,6 +122,8 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 	for _, object := range renderer.coordsObjects {
 		result = append(result, object)
 	}
+
+	result = append(result, renderer.playerTurn)
 
 	return result
 }
