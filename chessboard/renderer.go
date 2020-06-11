@@ -50,7 +50,7 @@ func (renderer Renderer) Layout(size fyne.Size) {
 
 	coordsFontSize := int(float64(cellsLength) * 0.25)
 
-	fileCoordsOffset := int(float64(cellsLength) * 1.0)
+	fileCoordsOffset := int(float64(cellsLength) * 0.95)
 	rankCoordsOffset := int(float64(cellsLength) * 0.8)
 
 	for file := 0; file < 8; file++ {
