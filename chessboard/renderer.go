@@ -115,7 +115,9 @@ func (renderer Renderer) MinSize() fyne.Size {
 
 // Refresh refreshes the board.
 func (renderer Renderer) Refresh() {
-
+	renderer.clear()
+	renderer.Layout(renderer.boardWidget.Size())
+	canvas.Refresh(renderer.boardWidget)
 }
 
 // BackgroundColor sets the board background color.
@@ -147,4 +149,20 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 // Destroy cleans up the renderer.
 func (renderer Renderer) Destroy() {
 
+}
+
+func (renderer Renderer) clear() {
+	renderer.playerTurn = nil
+	for line := 0; line < 8; line++ {
+		for col := 0; col < 8; col++ {
+			renderer.cells[line][col] = nil
+			renderer.pieces[line][col] = nil
+			renderer.filesCoords[0][col] = nil
+			renderer.ranksCoords[0][col] = nil
+		}
+	}
+
+	renderer.cellsObjects = nil
+	renderer.piecesObjects = nil
+	renderer.coordsObjects = nil
 }

@@ -11,10 +11,16 @@ import (
 func main() {
 	app := app.New()
 
+	boardOrientation := chessboard.BlackAtBottom
+
 	chessboardComponent := chessboard.NewChessBoard(400)
 	reverseBoardButton := widget.NewButtonWithIcon("", resourceReverseSvg, func() {
-		//chessboardComponent.Reverse()
-		println("Clik")
+		if boardOrientation == chessboard.BlackAtBottom {
+			boardOrientation = chessboard.BlackAtTop
+		} else {
+			boardOrientation = chessboard.BlackAtBottom
+		}
+		chessboardComponent.SetOrientation(boardOrientation)
 	})
 
 	mainLayout := layout.NewVBoxLayout()

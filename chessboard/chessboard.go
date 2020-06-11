@@ -158,7 +158,7 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 func NewChessBoard(size int) *ChessBoard {
 	chessBoard := &ChessBoard{
 		size:      size,
-		blackSide: BlackAtBottom,
+		blackSide: BlackAtTop,
 		game:      *chess.NewGame(),
 	}
 	chessBoard.ExtendBaseWidget(chessBoard)
@@ -166,8 +166,8 @@ func NewChessBoard(size int) *ChessBoard {
 	return chessBoard
 }
 
-/*
-func (boardComponent *ChessBoard) SetOrientation(orientation Orientation) {
-
+// SetOrientation sets the orientation of the board, putting the black side at the requested side.
+func (board *ChessBoard) SetOrientation(orientation BlackSide) {
+	board.blackSide = orientation
+	board.Refresh()
 }
-*/
