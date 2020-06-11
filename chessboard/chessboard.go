@@ -11,12 +11,24 @@ import (
 	"github.com/notnil/chess"
 )
 
+// BlackSide defines the side of the black side on the board.
+type BlackSide int
+
+const (
+	// BlackAtTop sets black side is at top of the board.
+	BlackAtTop BlackSide = iota
+
+	// BlackAtBottom sets black side is at bottom of the board.
+	BlackAtBottom
+)
+
 // ChessBoard is a chess board widget.
 type ChessBoard struct {
 	widget.BaseWidget
 
-	game chess.Game
-	size int
+	game      chess.Game
+	blackSide BlackSide
+	size      int
 }
 
 // CreateRenderer creates the board renderer.
@@ -145,10 +157,17 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 // NewChessBoard creates a new chess board.
 func NewChessBoard(size int) *ChessBoard {
 	chessBoard := &ChessBoard{
-		size: size,
-		game: *chess.NewGame(),
+		size:      size,
+		blackSide: BlackAtBottom,
+		game:      *chess.NewGame(),
 	}
 	chessBoard.ExtendBaseWidget(chessBoard)
 
 	return chessBoard
 }
+
+/*
+func (boardComponent *ChessBoard) SetOrientation(orientation Orientation) {
+
+}
+*/

@@ -32,8 +32,14 @@ func (renderer Renderer) Layout(size fyne.Size) {
 
 	for lineIndex, lineValues := range renderer.cells {
 		for colIndex, cellValue := range lineValues {
-			x := halfCellsLength + colIndex*cellsLength
-			y := halfCellsLength + (7-lineIndex)*cellsLength
+			var x, y int
+			if renderer.boardWidget.blackSide == BlackAtTop {
+				x = halfCellsLength + colIndex*cellsLength
+				y = halfCellsLength + (7-lineIndex)*cellsLength
+			} else {
+				x = halfCellsLength + (7-colIndex)*cellsLength
+				y = halfCellsLength + lineIndex*cellsLength
+			}
 			cellPosition := fyne.Position{X: x, Y: y}
 
 			cellValue.Resize(cellsSize)
@@ -54,7 +60,12 @@ func (renderer Renderer) Layout(size fyne.Size) {
 	rankCoordsOffset := int(float64(cellsLength) * 0.8)
 
 	for file := 0; file < 8; file++ {
-		x := fileCoordsOffset + cellsLength*file
+		var x int
+		if renderer.boardWidget.blackSide == BlackAtTop {
+			x = fileCoordsOffset + cellsLength*file
+		} else {
+			x = fileCoordsOffset + cellsLength*(7-file)
+		}
 		yTop := int(float64(cellsLength) * 0.015)
 		yBottom := int(float64(cellsLength) * 8.515)
 
@@ -70,7 +81,12 @@ func (renderer Renderer) Layout(size fyne.Size) {
 	}
 
 	for rank := 0; rank < 8; rank++ {
-		y := rankCoordsOffset + cellsLength*rank
+		var y int
+		if renderer.boardWidget.blackSide == BlackAtTop {
+			y = rankCoordsOffset + cellsLength*rank
+		} else {
+			y = rankCoordsOffset + cellsLength*(7-rank)
+		}
 		xLeft := int(float64(cellsLength) * 0.2)
 		xRight := int(float64(cellsLength) * 8.7)
 
