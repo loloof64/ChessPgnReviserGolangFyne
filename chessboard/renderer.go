@@ -27,16 +27,11 @@ type Renderer struct {
 func (renderer Renderer) Layout(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
-	halfCellsLength := cellsLength / 2
 	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
 
 	renderer.drawCellsAndPieces(size)
 	renderer.drawCoordinates(size)
-
-	turnCirclePlace := int(float64(cellsLength) * 8.5)
-	turnCircle := renderer.playerTurn
-	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
-	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
+	renderer.drawPlayerTurn(size)
 
 	if renderer.boardWidget.dragndropInProgress {
 		renderer.boardWidget.movedPiece.piece.Resize(cellsSize)
@@ -189,4 +184,15 @@ func (renderer Renderer) drawCoordinates(size fyne.Size) {
 		rightCoord.TextSize = coordsFontSize
 		rightCoord.Move(fyne.Position{X: xRight, Y: y})
 	}
+}
+
+func (renderer Renderer) drawPlayerTurn(size fyne.Size) {
+	minSize := math.Min(float64(size.Width), float64(size.Height))
+	cellsLength := int(minSize / 9.0)
+	halfCellsLength := cellsLength / 2
+
+	turnCirclePlace := int(float64(cellsLength) * 8.5)
+	turnCircle := renderer.playerTurn
+	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
+	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
 }
