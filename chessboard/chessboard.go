@@ -63,32 +63,8 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	coordsObjects := make([]fyne.CanvasObject, 0, 32)
 
 	cellsObjects, piecesObjects = board.buildCellsAndPieces(&cells, &pieces, cellsObjects, piecesObjects)
-
-	coordsColor := color.RGBA{255, 199, 0, 0xff}
-	asciiLowerA := 97
-	asciiOne := 49
-
-	for file := 0; file < 8; file++ {
-		coord := fmt.Sprintf("%c", asciiLowerA+file)
-		topCoord := canvas.NewText(coord, coordsColor)
-		bottomCoord := canvas.NewText(coord, coordsColor)
-
-		filesCoords[0][file] = topCoord
-		filesCoords[1][file] = bottomCoord
-		coordsObjects = append(coordsObjects, topCoord)
-		coordsObjects = append(coordsObjects, bottomCoord)
-	}
-
-	for rank := 0; rank < 8; rank++ {
-		coord := fmt.Sprintf("%c", asciiOne+(7-rank))
-		leftCoord := canvas.NewText(coord, coordsColor)
-		rightCoord := canvas.NewText(coord, coordsColor)
-
-		ranksCoords[0][rank] = leftCoord
-		ranksCoords[1][rank] = rightCoord
-		coordsObjects = append(coordsObjects, leftCoord)
-		coordsObjects = append(coordsObjects, rightCoord)
-	}
+	coordsObjects = board.buildFilesCoordinates(&filesCoords, coordsObjects)
+	coordsObjects = board.buildRanksCoordinates(&ranksCoords, coordsObjects)
 
 	var playerTurnColor color.Color
 	gameTurn := board.game.Position().Turn()
@@ -252,4 +228,41 @@ func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pie
 	}
 
 	return cellsObjects, piecesObjects
+}
+
+func (board *ChessBoard) buildFilesCoordinates(filesCoords *[2][8]*canvas.Text, coordsObjects []fyne.CanvasObject) []fyne.CanvasObject {
+	coordsColor := color.RGBA{255, 199, 0, 0xff}
+	asciiLowerA := 97
+
+	for file := 0; file < 8; file++ {
+		coord := fmt.Sprintf("%c", asciiLowerA+file)
+		topCoord := canvas.NewText(coord, coordsColor)
+		bottomCoord := canvas.NewText(coord, coordsColor)
+
+		filesCoords[0][file] = topCoord
+		filesCoords[1][file] = bottomCoord
+		coordsObjects = append(coordsObjects, topCoord)
+		coordsObjects = append(coordsObjects, bottomCoord)
+	}
+
+	return coordsObjects
+}
+
+func (board *ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text,
+	coordsObjects []fyne.CanvasObject) []fyne.CanvasObject {
+	coordsColor := color.RGBA{255, 199, 0, 0xff}
+	asciiOne := 49
+
+	for rank := 0; rank < 8; rank++ {
+		coord := fmt.Sprintf("%c", asciiOne+(7-rank))
+		leftCoord := canvas.NewText(coord, coordsColor)
+		rightCoord := canvas.NewText(coord, coordsColor)
+
+		ranksCoords[0][rank] = leftCoord
+		ranksCoords[1][rank] = rightCoord
+		coordsObjects = append(coordsObjects, leftCoord)
+		coordsObjects = append(coordsObjects, rightCoord)
+	}
+
+	return coordsObjects
 }
