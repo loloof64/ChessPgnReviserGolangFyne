@@ -17,10 +17,6 @@ type Renderer struct {
 	filesCoords [2][8]*canvas.Text
 	ranksCoords [2][8]*canvas.Text
 	playerTurn  *canvas.Circle
-
-	cellsObjects  []fyne.CanvasObject
-	piecesObjects []fyne.CanvasObject
-	coordsObjects []fyne.CanvasObject
 }
 
 // Layout layouts the board elements.
@@ -40,7 +36,6 @@ func (renderer Renderer) MinSize() fyne.Size {
 
 // Refresh refreshes the board.
 func (renderer Renderer) Refresh() {
-	renderer.clear()
 	renderer.Layout(renderer.boardWidget.Size())
 	canvas.Refresh(renderer.boardWidget)
 }
@@ -54,16 +49,38 @@ func (renderer Renderer) BackgroundColor() color.Color {
 func (renderer Renderer) Objects() []fyne.CanvasObject {
 	result := make([]fyne.CanvasObject, 0, 170)
 
-	for _, object := range renderer.cellsObjects {
-		result = append(result, object)
+	for rank := 0; rank < 8; rank++ {
+		for file := 0; file < 8; file++ {
+			cell := renderer.cells[rank][file]
+			if cell != nil {
+				result = append(result, cell)
+			}
+		}
 	}
 
-	for _, object := range renderer.piecesObjects {
-		result = append(result, object)
+	for rank := 0; rank < 8; rank++ {
+		for file := 0; file < 8; file++ {
+			piece := renderer.pieces[rank][file]
+			if piece == nil {
+				continue
+			}
+
+			isDraggedPiece := renderer.boardWidget.dragndropInProgress &&
+				renderer.boardWidget.movedPiece.startCell.file == file &&
+				renderer.boardWidget.movedPiece.startCell.rank == rank
+
+			if isDraggedPiece {
+				continue
+			}
+			result = append(result, piece)
+		}
 	}
 
-	for _, object := range renderer.coordsObjects {
-		result = append(result, object)
+	for col := 0; col < 8; col++ {
+		result = append(result, renderer.filesCoords[0][col])
+		result = append(result, renderer.filesCoords[1][col])
+		result = append(result, renderer.ranksCoords[0][col])
+		result = append(result, renderer.ranksCoords[1][col])
 	}
 
 	result = append(result, renderer.playerTurn)
@@ -78,22 +95,6 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 // Destroy cleans up the renderer.
 func (renderer Renderer) Destroy() {
 
-}
-
-func (renderer Renderer) clear() {
-	renderer.playerTurn = nil
-	for line := 0; line < 8; line++ {
-		for col := 0; col < 8; col++ {
-			renderer.cells[line][col] = nil
-			renderer.pieces[line][col] = nil
-			renderer.filesCoords[0][col] = nil
-			renderer.ranksCoords[0][col] = nil
-		}
-	}
-
-	renderer.cellsObjects = nil
-	renderer.piecesObjects = nil
-	renderer.coordsObjects = nil
 }
 
 func (renderer Renderer) drawCellsAndPieces(size fyne.Size) {

@@ -69,15 +69,12 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	playerTurn := board.buildPlayerTurn()
 
 	return Renderer{
-		boardWidget:   board,
-		cells:         cells,
-		pieces:        pieces,
-		filesCoords:   filesCoords,
-		ranksCoords:   ranksCoords,
-		playerTurn:    playerTurn,
-		cellsObjects:  cellsObjects,
-		piecesObjects: piecesObjects,
-		coordsObjects: coordsObjects,
+		boardWidget: board,
+		cells:       cells,
+		pieces:      pieces,
+		filesCoords: filesCoords,
+		ranksCoords: ranksCoords,
+		playerTurn:  playerTurn,
 	}
 }
 
@@ -143,6 +140,8 @@ func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
 
 	if board.dragndropInProgress == false {
 		position := event.Position
+		// This is really needed to be coded as is !
+		// First file and rank, then bounds test, then adjust values with the board orientation
 		file := int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
 		rank := int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
 
@@ -171,6 +170,7 @@ func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
 		image.FillMode = canvas.ImageFillContain
 		board.movedPiece.piece = image
 		board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+		board.movedPiece.startCell = Cell{file: file, rank: rank}
 		board.Refresh()
 	} else {
 		position := event.Position
