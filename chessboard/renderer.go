@@ -30,29 +30,7 @@ func (renderer Renderer) Layout(size fyne.Size) {
 	halfCellsLength := cellsLength / 2
 	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
 
-	for lineIndex, lineValues := range renderer.cells {
-		for colIndex, cellValue := range lineValues {
-			var x, y int
-			if renderer.boardWidget.blackSide == BlackAtTop {
-				x = halfCellsLength + colIndex*cellsLength
-				y = halfCellsLength + (7-lineIndex)*cellsLength
-			} else {
-				x = halfCellsLength + (7-colIndex)*cellsLength
-				y = halfCellsLength + lineIndex*cellsLength
-			}
-			cellPosition := fyne.Position{X: x, Y: y}
-
-			cellValue.Resize(cellsSize)
-			cellValue.Move(cellPosition)
-
-			currentPiece := renderer.pieces[lineIndex][colIndex]
-
-			if currentPiece != nil {
-				currentPiece.Resize(cellsSize)
-				currentPiece.Move(cellPosition)
-			}
-		}
-	}
+	renderer.drawCellsAndPieces(size)
 
 	coordsFontSize := int(float64(cellsLength) * 0.25)
 
@@ -174,4 +152,35 @@ func (renderer Renderer) clear() {
 	renderer.cellsObjects = nil
 	renderer.piecesObjects = nil
 	renderer.coordsObjects = nil
+}
+
+func (renderer Renderer) drawCellsAndPieces(size fyne.Size) {
+	minSize := math.Min(float64(size.Width), float64(size.Height))
+	cellsLength := int(minSize / 9.0)
+	halfCellsLength := cellsLength / 2
+	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
+
+	for lineIndex, lineValues := range renderer.cells {
+		for colIndex, cellValue := range lineValues {
+			var x, y int
+			if renderer.boardWidget.blackSide == BlackAtTop {
+				x = halfCellsLength + colIndex*cellsLength
+				y = halfCellsLength + (7-lineIndex)*cellsLength
+			} else {
+				x = halfCellsLength + (7-colIndex)*cellsLength
+				y = halfCellsLength + lineIndex*cellsLength
+			}
+			cellPosition := fyne.Position{X: x, Y: y}
+
+			cellValue.Resize(cellsSize)
+			cellValue.Move(cellPosition)
+
+			currentPiece := renderer.pieces[lineIndex][colIndex]
+
+			if currentPiece != nil {
+				currentPiece.Resize(cellsSize)
+				currentPiece.Move(cellPosition)
+			}
+		}
+	}
 }
