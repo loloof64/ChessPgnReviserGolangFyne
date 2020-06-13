@@ -25,18 +25,10 @@ type Renderer struct {
 
 // Layout layouts the board elements.
 func (renderer Renderer) Layout(size fyne.Size) {
-	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
-	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
-
 	renderer.drawCellsAndPieces(size)
 	renderer.drawCoordinates(size)
 	renderer.drawPlayerTurn(size)
-
-	if renderer.boardWidget.dragndropInProgress {
-		renderer.boardWidget.movedPiece.piece.Resize(cellsSize)
-		renderer.boardWidget.movedPiece.piece.Move(renderer.boardWidget.movedPiece.location)
-	}
+	renderer.drawMovedPieceIfAny(size)
 }
 
 // MinSize computes the minimum size.
@@ -195,4 +187,15 @@ func (renderer Renderer) drawPlayerTurn(size fyne.Size) {
 	turnCircle := renderer.playerTurn
 	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
 	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
+}
+
+func (renderer Renderer) drawMovedPieceIfAny(size fyne.Size) {
+	minSize := math.Min(float64(size.Width), float64(size.Height))
+	cellsLength := int(minSize / 9.0)
+	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
+
+	if renderer.boardWidget.dragndropInProgress {
+		renderer.boardWidget.movedPiece.piece.Resize(cellsSize)
+		renderer.boardWidget.movedPiece.piece.Move(renderer.boardWidget.movedPiece.location)
+	}
 }
