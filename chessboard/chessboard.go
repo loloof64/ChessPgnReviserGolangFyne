@@ -53,9 +53,6 @@ type ChessBoard struct {
 func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	board.ExtendBaseWidget(board)
 
-	whiteCellColor := color.RGBA{255, 206, 158, 0xff}
-	blackCellColor := color.RGBA{209, 139, 71, 0xff}
-
 	cells := [8][8]*canvas.Rectangle{}
 	pieces := [8][8]*canvas.Image{}
 	filesCoords := [2][8]*canvas.Text{}
@@ -65,31 +62,7 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	piecesObjects := make([]fyne.CanvasObject, 0, 64)
 	coordsObjects := make([]fyne.CanvasObject, 0, 32)
 
-	for line := 0; line < 8; line++ {
-		for col := 0; col < 8; col++ {
-			isWhiteCell := (line+col)%2 != 0
-			var cellColor color.Color
-			if isWhiteCell {
-				cellColor = whiteCellColor
-			} else {
-				cellColor = blackCellColor
-			}
-			cellRef := canvas.NewRectangle(cellColor)
-			cells[line][col] = cellRef
-			cellsObjects = append(cellsObjects, cellRef)
-
-			square := chess.Square(col + 8*line)
-			pieceValue := board.game.Position().Board().Piece(square)
-			if pieceValue != chess.NoPiece {
-				imageResource := imageResourceFromPiece(pieceValue)
-				image := canvas.NewImageFromResource(&imageResource)
-				image.FillMode = canvas.ImageFillContain
-
-				pieces[line][col] = image
-				piecesObjects = append(piecesObjects, image)
-			}
-		}
-	}
+	cellsObjects, piecesObjects = board.buildCellsAndPieces(&cells, &pieces, cellsObjects, piecesObjects)
 
 	coordsColor := color.RGBA{255, 199, 0, 0xff}
 	asciiLowerA := 97
@@ -244,4 +217,39 @@ func (board *ChessBoard) DragEnd() {
 	board.movedPiece.startCell = Cell{file: -1, rank: -1}
 
 	board.Refresh()
+}
+
+func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image,
+	cellsObjects []fyne.CanvasObject, piecesObjects []fyne.CanvasObject) (
+	[]fyne.CanvasObject, []fyne.CanvasObject) {
+	whiteCellColor := color.RGBA{255, 206, 158, 0xff}
+	blackCellColor := color.RGBA{209, 139, 71, 0xff}
+
+	for line := 0; line < 8; line++ {
+		for col := 0; col < 8; col++ {
+			isWhiteCell := (line+col)%2 != 0
+			var cellColor color.Color
+			if isWhiteCell {
+				cellColor = whiteCellColor
+			} else {
+				cellColor = blackCellColor
+			}
+			cellRef := canvas.NewRectangle(cellColor)
+			cells[line][col] = cellRef
+			cellsObjects = append(cellsObjects, cellRef)
+
+			square := chess.Square(col + 8*line)
+			pieceValue := board.game.Position().Board().Piece(square)
+			if pieceValue != chess.NoPiece {
+				imageResource := imageResourceFromPiece(pieceValue)
+				image := canvas.NewImageFromResource(&imageResource)
+				image.FillMode = canvas.ImageFillContain
+
+				pieces[line][col] = image
+				piecesObjects = append(piecesObjects, image)
+			}
+		}
+	}
+
+	return cellsObjects, piecesObjects
 }
