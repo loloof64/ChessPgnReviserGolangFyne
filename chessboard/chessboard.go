@@ -66,14 +66,7 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	coordsObjects = board.buildFilesCoordinates(&filesCoords, coordsObjects)
 	coordsObjects = board.buildRanksCoordinates(&ranksCoords, coordsObjects)
 
-	var playerTurnColor color.Color
-	gameTurn := board.game.Position().Turn()
-	if gameTurn == chess.White {
-		playerTurnColor = color.White
-	} else {
-		playerTurnColor = color.Black
-	}
-	playerTurn := canvas.NewCircle(playerTurnColor)
+	playerTurn := board.buildPlayerTurn()
 
 	return Renderer{
 		boardWidget:   board,
@@ -265,4 +258,16 @@ func (board *ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text,
 	}
 
 	return coordsObjects
+}
+
+func (board *ChessBoard) buildPlayerTurn() *canvas.Circle {
+	var playerTurnColor color.Color
+	gameTurn := board.game.Position().Turn()
+	if gameTurn == chess.White {
+		playerTurnColor = color.White
+	} else {
+		playerTurnColor = color.Black
+	}
+
+	return canvas.NewCircle(playerTurnColor)
 }
