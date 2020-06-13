@@ -3,6 +3,7 @@ package chessboard
 import (
 	"fmt"
 	"image/color"
+	"math"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -22,13 +23,30 @@ const (
 	BlackAtBottom
 )
 
+// Cell handles a cell inside the board component.
+type Cell struct {
+	file int
+	rank int
+}
+
+// MovedPiece handles the moved piece during a DragAndDrop, for the board component.
+type MovedPiece struct {
+	location  fyne.Position
+	piece     fyne.CanvasObject
+	startCell Cell
+}
+
 // ChessBoard is a chess board widget.
 type ChessBoard struct {
 	widget.BaseWidget
 
-	game      chess.Game
-	blackSide BlackSide
-	size      int
+	game        chess.Game
+	blackSide   BlackSide
+	length      int
+	cellsLength int
+
+	movedPiece          MovedPiece
+	dragndropInProgress bool
 }
 
 // CreateRenderer creates the board renderer.
@@ -155,11 +173,15 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 }
 
 // NewChessBoard creates a new chess board.
-func NewChessBoard(size int) *ChessBoard {
+func NewChessBoard(length int) *ChessBoard {
 	chessBoard := &ChessBoard{
-		size:      size,
+		length:    length,
 		blackSide: BlackAtTop,
 		game:      *chess.NewGame(),
+		movedPiece: MovedPiece{
+			startCell: Cell{file: -1, rank: -1},
+			location:  fyne.Position{X: -1000, Y: -1000},
+		},
 	}
 	chessBoard.ExtendBaseWidget(chessBoard)
 
@@ -169,5 +191,57 @@ func NewChessBoard(size int) *ChessBoard {
 // SetOrientation sets the orientation of the board, putting the black side at the requested side.
 func (board *ChessBoard) SetOrientation(orientation BlackSide) {
 	board.blackSide = orientation
+	board.Refresh()
+}
+
+// Dragged handles the dragged event for the chess board.
+func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
+	cellsLength := int(float64(board.length) / 9)
+	halfCellsLength := int(float64(cellsLength) / 2)
+
+	if board.dragndropInProgress == false {
+		position := event.Position
+		file := int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
+		rank := int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+
+		inBounds := file >= 0 && file <= 7 && rank >= 0 && rank <= 7
+		if !inBounds {
+			return
+		}
+
+		if board.blackSide == BlackAtTop {
+			rank = 7 - rank
+		} else {
+			file = 7 - file
+		}
+
+		square := chess.Square(file + 8*rank)
+		pieceValue := board.game.Position().Board().Piece(square)
+
+		if pieceValue == chess.NoPiece {
+			return
+		}
+
+		board.dragndropInProgress = true
+
+		imageResource := imageResourceFromPiece(pieceValue)
+		image := canvas.NewImageFromResource(&imageResource)
+		image.FillMode = canvas.ImageFillContain
+		board.movedPiece.piece = image
+		board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+		board.Refresh()
+	} else {
+		position := event.Position
+		board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+		board.Refresh()
+	}
+}
+
+// DragEnd handles the drag end event for the chess board
+func (board *ChessBoard) DragEnd() {
+	board.dragndropInProgress = false
+	board.movedPiece.location = fyne.Position{X: -1000, Y: -1000}
+	board.movedPiece.startCell = Cell{file: -1, rank: -1}
+
 	board.Refresh()
 }

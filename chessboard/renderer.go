@@ -105,11 +105,16 @@ func (renderer Renderer) Layout(size fyne.Size) {
 	turnCircle := renderer.playerTurn
 	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
 	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
+
+	if renderer.boardWidget.dragndropInProgress {
+		renderer.boardWidget.movedPiece.piece.Resize(cellsSize)
+		renderer.boardWidget.movedPiece.piece.Move(renderer.boardWidget.movedPiece.location)
+	}
 }
 
 // MinSize computes the minimum size.
 func (renderer Renderer) MinSize() fyne.Size {
-	size := renderer.boardWidget.size
+	size := renderer.boardWidget.length
 	return fyne.NewSize(size, size)
 }
 
@@ -142,6 +147,10 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 	}
 
 	result = append(result, renderer.playerTurn)
+
+	if renderer.boardWidget.dragndropInProgress {
+		result = append(result, renderer.boardWidget.movedPiece.piece)
+	}
 
 	return result
 }
