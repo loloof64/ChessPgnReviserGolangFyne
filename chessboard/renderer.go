@@ -26,7 +26,8 @@ type Renderer struct {
 // Layout layouts the board elements.
 func (renderer Renderer) Layout(size fyne.Size) {
 	renderer.drawCellsAndPieces(size)
-	renderer.drawCoordinates(size)
+	renderer.drawFilesCoordinates(size)
+	renderer.drawRanksCoordinates(size)
 	renderer.drawPlayerTurn(size)
 	renderer.drawMovedPieceIfAny(size)
 }
@@ -126,14 +127,13 @@ func (renderer Renderer) drawCellsAndPieces(size fyne.Size) {
 	}
 }
 
-func (renderer Renderer) drawCoordinates(size fyne.Size) {
+func (renderer Renderer) drawFilesCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 
 	coordsFontSize := int(float64(cellsLength) * 0.25)
 
 	fileCoordsOffset := int(float64(cellsLength) * 0.95)
-	rankCoordsOffset := int(float64(cellsLength) * 0.8)
 
 	for file := 0; file < 8; file++ {
 		var x int
@@ -155,6 +155,15 @@ func (renderer Renderer) drawCoordinates(size fyne.Size) {
 		bottomCoord.TextSize = coordsFontSize
 		bottomCoord.Move(fyne.Position{X: x, Y: yBottom})
 	}
+}
+
+func (renderer Renderer) drawRanksCoordinates(size fyne.Size) {
+	minSize := math.Min(float64(size.Width), float64(size.Height))
+	cellsLength := int(minSize / 9.0)
+
+	coordsFontSize := int(float64(cellsLength) * 0.25)
+
+	rankCoordsOffset := int(float64(cellsLength) * 0.8)
 
 	for rank := 0; rank < 8; rank++ {
 		var y int
