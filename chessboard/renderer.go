@@ -6,6 +6,7 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
+	"github.com/notnil/chess"
 )
 
 // Renderer renders a ChessBoard.
@@ -23,7 +24,7 @@ func (renderer Renderer) Layout(size fyne.Size) {
 	renderer.layoutCellsAndPieces(size)
 	renderer.layoutFilesCoordinates(size)
 	renderer.layoutRanksCoordinates(size)
-	renderer.layoutPlayerTurn(size)
+	renderer.layoutAndUpdatePlayerTurn(size)
 	renderer.layoutMovedPieceIfAny(size)
 }
 
@@ -187,7 +188,7 @@ func (renderer Renderer) layoutRanksCoordinates(size fyne.Size) {
 	}
 }
 
-func (renderer Renderer) layoutPlayerTurn(size fyne.Size) {
+func (renderer Renderer) layoutAndUpdatePlayerTurn(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 	halfCellsLength := cellsLength / 2
@@ -196,6 +197,12 @@ func (renderer Renderer) layoutPlayerTurn(size fyne.Size) {
 	turnCircle := renderer.playerTurn
 	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
 	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
+
+	if renderer.boardWidget.game.Position().Turn() == chess.White {
+		turnCircle.FillColor = color.White
+	} else {
+		turnCircle.FillColor = color.Black
+	}
 }
 
 func (renderer Renderer) layoutMovedPieceIfAny(size fyne.Size) {
