@@ -28,6 +28,7 @@ func (renderer Renderer) Layout(size fyne.Size) {
 	renderer.layoutMovedPieceIfAny(size)
 
 	renderer.updatePlayerTurn()
+	renderer.updateCellsForDragAndDrop()
 }
 
 // MinSize computes the minimum size.
@@ -218,5 +219,48 @@ func (renderer Renderer) layoutMovedPieceIfAny(size fyne.Size) {
 	if renderer.boardWidget.dragndropInProgress {
 		renderer.boardWidget.movedPiece.piece.Resize(cellsSize)
 		renderer.boardWidget.movedPiece.piece.Move(renderer.boardWidget.movedPiece.location)
+	}
+}
+
+func (renderer Renderer) updateCellsForDragAndDrop() {
+	whiteCellColor := color.RGBA{255, 206, 158, 0xff}
+	blackCellColor := color.RGBA{209, 139, 71, 0xff}
+
+	dndCrossCellColor := color.RGBA{255, 20, 200, 0xff}
+	dndOriginCellColor := color.RGBA{255, 20, 30, 0xff}
+	dndTargetCellColor := color.RGBA{20, 255, 30, 0xff}
+
+	for rank := 0; rank < 8; rank++ {
+		for file := 0; file < 8; file++ {
+			isWhiteCell := (file+rank)%2 == 0
+			if isWhiteCell {
+				renderer.cells[rank][file].FillColor = whiteCellColor
+			} else {
+				renderer.cells[rank][file].FillColor = blackCellColor
+			}
+
+			if renderer.boardWidget.dragndropInProgress == false {
+				continue
+			}
+
+			isADragAndDropCrossCell := file == renderer.boardWidget.movedPiece.endCell.file ||
+				rank == renderer.boardWidget.movedPiece.endCell.rank
+			if isADragAndDropCrossCell {
+				renderer.cells[rank][file].FillColor = dndCrossCellColor
+			}
+
+			isOriginCell := file == renderer.boardWidget.movedPiece.startCell.file &&
+				rank == renderer.boardWidget.movedPiece.startCell.rank
+			if isOriginCell {
+				renderer.cells[rank][file].FillColor = dndOriginCellColor
+			}
+
+			isTargetCell := file == renderer.boardWidget.movedPiece.endCell.file &&
+				rank == renderer.boardWidget.movedPiece.endCell.rank
+			if isTargetCell {
+				renderer.cells[rank][file].FillColor = dndTargetCellColor
+			}
+
+		}
 	}
 }
