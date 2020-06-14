@@ -34,6 +34,7 @@ type MovedPiece struct {
 	location  fyne.Position
 	piece     fyne.CanvasObject
 	startCell Cell
+	endCell   Cell
 }
 
 // ChessBoard is a chess board widget.
@@ -116,7 +117,7 @@ func NewChessBoard(length int) *ChessBoard {
 	chessBoard := &ChessBoard{
 		length:    length,
 		blackSide: BlackAtTop,
-		game:      *chess.NewGame(),
+		game:      *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
 		movedPiece: MovedPiece{
 			startCell: Cell{file: -1, rank: -1},
 			location:  fyne.Position{X: -1000, Y: -1000},
@@ -139,6 +140,7 @@ func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
 	halfCellsLength := int(float64(cellsLength) / 2)
 
 	if board.dragndropInProgress == false {
+
 		position := event.Position
 		// This is really needed to be coded as is !
 		// First file and rank, then bounds test, then adjust values with the board orientation
@@ -171,21 +173,60 @@ func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
 		board.movedPiece.piece = image
 		board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
 		board.movedPiece.startCell = Cell{file: file, rank: rank}
+		board.movedPiece.endCell = Cell{file: file, rank: rank}
 		board.Refresh()
 	} else {
 		position := event.Position
+		var file, rank int
+		if board.blackSide == BlackAtTop {
+			file = int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
+			rank = 7 - int(math.Floor(float64(position.Y-halfCellsLength)/float64(cellsLength)))
+		} else {
+			file = 7 - int(math.Floor(float64(position.X-halfCellsLength)/float64(cellsLength)))
+			rank = int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+		}
+
 		board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+		board.movedPiece.endCell = Cell{file: file, rank: rank}
 		board.Refresh()
 	}
 }
 
 // DragEnd handles the drag end event for the chess board
 func (board *ChessBoard) DragEnd() {
+	file := board.movedPiece.endCell.file
+	rank := board.movedPiece.endCell.rank
+
+	inBounds := file >= 0 && file <= 7 && rank >= 0 && rank <= 7
+	if !inBounds {
+		board.resetDragAndDrop()
+		board.Refresh()
+		return
+	}
+
+	moveStr := board.getMoveString()
+
+	_ = board.game.MoveStr(moveStr)
+	board.resetDragAndDrop()
+	board.Refresh()
+}
+
+func (board *ChessBoard) resetDragAndDrop() {
 	board.dragndropInProgress = false
 	board.movedPiece.location = fyne.Position{X: -1000, Y: -1000}
 	board.movedPiece.startCell = Cell{file: -1, rank: -1}
+}
 
-	board.Refresh()
+func (board *ChessBoard) getMoveString() string {
+	asciiLowerA := 97
+	asciiOne := 49
+
+	return fmt.Sprintf("%c%c%c%c",
+		asciiLowerA+board.movedPiece.startCell.file,
+		asciiOne+board.movedPiece.startCell.rank,
+		asciiLowerA+board.movedPiece.endCell.file,
+		asciiOne+board.movedPiece.endCell.rank,
+	)
 }
 
 func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image,

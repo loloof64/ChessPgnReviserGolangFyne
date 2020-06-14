@@ -21,11 +21,11 @@ type Renderer struct {
 
 // Layout layouts the board elements.
 func (renderer Renderer) Layout(size fyne.Size) {
-	renderer.drawCellsAndPieces(size)
-	renderer.drawFilesCoordinates(size)
-	renderer.drawRanksCoordinates(size)
-	renderer.drawPlayerTurn(size)
-	renderer.drawMovedPieceIfAny(size)
+	renderer.layoutCellsAndPieces(size)
+	renderer.layoutFilesCoordinates(size)
+	renderer.layoutRanksCoordinates(size)
+	renderer.layoutPlayerTurn(size)
+	renderer.layoutMovedPieceIfAny(size)
 }
 
 // MinSize computes the minimum size.
@@ -97,7 +97,7 @@ func (renderer Renderer) Destroy() {
 
 }
 
-func (renderer Renderer) drawCellsAndPieces(size fyne.Size) {
+func (renderer Renderer) layoutCellsAndPieces(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 	halfCellsLength := cellsLength / 2
@@ -128,7 +128,7 @@ func (renderer Renderer) drawCellsAndPieces(size fyne.Size) {
 	}
 }
 
-func (renderer Renderer) drawFilesCoordinates(size fyne.Size) {
+func (renderer Renderer) layoutFilesCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 
@@ -158,7 +158,7 @@ func (renderer Renderer) drawFilesCoordinates(size fyne.Size) {
 	}
 }
 
-func (renderer Renderer) drawRanksCoordinates(size fyne.Size) {
+func (renderer Renderer) layoutRanksCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 
@@ -188,7 +188,7 @@ func (renderer Renderer) drawRanksCoordinates(size fyne.Size) {
 	}
 }
 
-func (renderer Renderer) drawPlayerTurn(size fyne.Size) {
+func (renderer Renderer) layoutPlayerTurn(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 	halfCellsLength := cellsLength / 2
@@ -199,7 +199,7 @@ func (renderer Renderer) drawPlayerTurn(size fyne.Size) {
 	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
 }
 
-func (renderer Renderer) drawMovedPieceIfAny(size fyne.Size) {
+func (renderer Renderer) layoutMovedPieceIfAny(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
