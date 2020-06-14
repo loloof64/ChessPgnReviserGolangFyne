@@ -24,8 +24,10 @@ func (renderer Renderer) Layout(size fyne.Size) {
 	renderer.layoutCellsAndPieces(size)
 	renderer.layoutFilesCoordinates(size)
 	renderer.layoutRanksCoordinates(size)
-	renderer.layoutAndUpdatePlayerTurn(size)
+	renderer.layoutPlayerTurn(size)
 	renderer.layoutMovedPieceIfAny(size)
+
+	renderer.updatePlayerTurn()
 }
 
 // MinSize computes the minimum size.
@@ -188,7 +190,7 @@ func (renderer Renderer) layoutRanksCoordinates(size fyne.Size) {
 	}
 }
 
-func (renderer Renderer) layoutAndUpdatePlayerTurn(size fyne.Size) {
+func (renderer Renderer) layoutPlayerTurn(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 	halfCellsLength := cellsLength / 2
@@ -197,7 +199,10 @@ func (renderer Renderer) layoutAndUpdatePlayerTurn(size fyne.Size) {
 	turnCircle := renderer.playerTurn
 	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
 	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
+}
 
+func (renderer Renderer) updatePlayerTurn() {
+	turnCircle := renderer.playerTurn
 	if renderer.boardWidget.game.Position().Turn() == chess.White {
 		turnCircle.FillColor = color.White
 	} else {
