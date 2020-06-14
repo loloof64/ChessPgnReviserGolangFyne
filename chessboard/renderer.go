@@ -21,11 +21,13 @@ type Renderer struct {
 
 // Layout layouts the board elements.
 func (renderer Renderer) Layout(size fyne.Size) {
-	renderer.layoutCellsAndPieces(size)
+	renderer.layoutCells(size)
+	renderer.layoutLastMoveArrowIfNeeded(size)
+	renderer.layoutPieces(size)
+	renderer.layoutMovedPieceIfAny(size)
 	renderer.layoutFilesCoordinates(size)
 	renderer.layoutRanksCoordinates(size)
 	renderer.layoutPlayerTurn(size)
-	renderer.layoutMovedPieceIfAny(size)
 
 	renderer.updatePlayerTurn()
 	renderer.updateCellsForDragAndDrop()
@@ -92,6 +94,12 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 		result = append(result, renderer.boardWidget.movedPiece.piece)
 	}
 
+	if renderer.boardWidget.lastMove != nil {
+		result = append(result, &renderer.boardWidget.lastMove.baseline)
+		result = append(result, &renderer.boardWidget.lastMove.leftArrowLine)
+		result = append(result, &renderer.boardWidget.lastMove.rightArrowLine)
+	}
+
 	return result
 }
 
@@ -100,7 +108,7 @@ func (renderer Renderer) Destroy() {
 
 }
 
-func (renderer Renderer) layoutCellsAndPieces(size fyne.Size) {
+func (renderer Renderer) layoutCells(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 	halfCellsLength := cellsLength / 2
@@ -120,6 +128,27 @@ func (renderer Renderer) layoutCellsAndPieces(size fyne.Size) {
 
 			cellValue.Resize(cellsSize)
 			cellValue.Move(cellPosition)
+		}
+	}
+}
+
+func (renderer Renderer) layoutPieces(size fyne.Size) {
+	minSize := math.Min(float64(size.Width), float64(size.Height))
+	cellsLength := int(minSize / 9.0)
+	halfCellsLength := cellsLength / 2
+	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
+
+	for lineIndex, lineValues := range renderer.cells {
+		for colIndex := range lineValues {
+			var x, y int
+			if renderer.boardWidget.blackSide == BlackAtTop {
+				x = halfCellsLength + colIndex*cellsLength
+				y = halfCellsLength + (7-lineIndex)*cellsLength
+			} else {
+				x = halfCellsLength + (7-colIndex)*cellsLength
+				y = halfCellsLength + lineIndex*cellsLength
+			}
+			cellPosition := fyne.Position{X: x, Y: y}
 
 			currentPiece := renderer.boardWidget.pieces[lineIndex][colIndex]
 
@@ -128,6 +157,30 @@ func (renderer Renderer) layoutCellsAndPieces(size fyne.Size) {
 				currentPiece.Move(cellPosition)
 			}
 		}
+	}
+}
+
+func (renderer Renderer) layoutLastMoveArrowIfNeeded(size fyne.Size) {
+	minSize := math.Min(float64(size.Width), float64(size.Height))
+	cellsLength := int(minSize / 9.0)
+
+	if renderer.boardWidget.lastMove != nil {
+		var xa, ya, xb, yb int
+		if renderer.boardWidget.blackSide == BlackAtTop {
+			xa = cellsLength + renderer.boardWidget.lastMove.originCell.file*cellsLength
+			ya = cellsLength + (7-renderer.boardWidget.lastMove.originCell.rank)*cellsLength
+			xb = cellsLength + renderer.boardWidget.lastMove.targetCell.file*cellsLength
+			yb = cellsLength + (7-renderer.boardWidget.lastMove.targetCell.rank)*cellsLength
+		} else {
+			xa = cellsLength + (7-renderer.boardWidget.lastMove.originCell.file)*cellsLength
+			ya = cellsLength + renderer.boardWidget.lastMove.originCell.rank*cellsLength
+			xb = cellsLength + (7-renderer.boardWidget.lastMove.targetCell.file)*cellsLength
+			yb = cellsLength + renderer.boardWidget.lastMove.targetCell.rank*cellsLength
+		}
+		arrowWidth := int(float64(cellsLength) * 0.2)
+		arrowLengthPercentage := 0.25
+		lineThickness := float32(cellsLength) * 0.1
+		renderer.makeArrow(xa, ya, xb, yb, arrowWidth, arrowLengthPercentage, lineThickness)
 	}
 }
 
@@ -263,4 +316,44 @@ func (renderer Renderer) updateCellsForDragAndDrop() {
 
 		}
 	}
+}
+
+// based on http://xymaths.free.fr/Informatique-Programmation/javascript/canvas-dessin-fleche.php
+func (renderer Renderer) makeArrow(xa int, ya int, xb int, yb int,
+	arrowWidth int, arrowLengthPercentage float64, lineThickness float32) {
+
+	arrowColor := color.RGBA{100, 90, 200, 0xff}
+
+	deltaX := float64(xb - xa)
+	deltaY := float64(yb - ya)
+	abLength := math.Sqrt(deltaX*deltaX + deltaY*deltaY)
+	arrowLength := int(arrowLengthPercentage * abLength)
+
+	xc := xb + int(float64(arrowLength*(xa-xb))/abLength)
+	yc := yb + int(float64(arrowLength*(ya-yb))/abLength)
+
+	xd := xc + int(float64(arrowWidth*(ya-yb))/abLength)
+	yd := yc + int(float64(arrowWidth*(xb-xa))/abLength)
+
+	xe := xc - int(float64(arrowWidth*(ya-yb))/abLength)
+	ye := yc - int(float64(arrowWidth*(xb-xa))/abLength)
+
+	baseLine := *canvas.NewLine(arrowColor)
+	baseLine.StrokeWidth = lineThickness
+	baseLine.Position1 = fyne.NewPos(xa, ya)
+	baseLine.Position2 = fyne.NewPos(xb, yb)
+
+	arrowLine1 := *canvas.NewLine(arrowColor)
+	arrowLine1.StrokeWidth = lineThickness
+	arrowLine1.Position1 = fyne.NewPos(xd, yd)
+	arrowLine1.Position2 = fyne.NewPos(xb, yb)
+
+	arrowLine2 := *canvas.NewLine(arrowColor)
+	arrowLine2.StrokeWidth = lineThickness
+	arrowLine2.Position1 = fyne.NewPos(xb, yb)
+	arrowLine2.Position2 = fyne.NewPos(xe, ye)
+
+	renderer.boardWidget.lastMove.baseline = baseLine
+	renderer.boardWidget.lastMove.leftArrowLine = arrowLine1
+	renderer.boardWidget.lastMove.rightArrowLine = arrowLine2
 }

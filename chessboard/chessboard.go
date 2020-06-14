@@ -23,18 +23,25 @@ const (
 	BlackAtBottom
 )
 
-// Cell handles a cell inside the board component.
-type Cell struct {
+type cell struct {
 	file int
 	rank int
 }
 
-// MovedPiece handles the moved piece during a DragAndDrop, for the board component.
-type MovedPiece struct {
+type lastMove struct {
+	originCell cell
+	targetCell cell
+
+	baseline       canvas.Line
+	leftArrowLine  canvas.Line
+	rightArrowLine canvas.Line
+}
+
+type movedPiece struct {
 	location  fyne.Position
 	piece     fyne.CanvasObject
-	startCell Cell
-	endCell   Cell
+	startCell cell
+	endCell   cell
 }
 
 // ChessBoard is a chess board widget.
@@ -45,8 +52,9 @@ type ChessBoard struct {
 	blackSide   BlackSide
 	length      int
 	cellsLength int
+	lastMove    *lastMove
 
-	movedPiece          MovedPiece
+	movedPiece          movedPiece
 	dragndropInProgress bool
 
 	pieces [8][8]*canvas.Image
@@ -117,8 +125,8 @@ func NewChessBoard(length int) *ChessBoard {
 		length:    length,
 		blackSide: BlackAtTop,
 		game:      *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
-		movedPiece: MovedPiece{
-			startCell: Cell{file: -1, rank: -1},
+		movedPiece: movedPiece{
+			startCell: cell{file: -1, rank: -1},
 			location:  fyne.Position{X: -1000, Y: -1000},
 		},
 	}
@@ -156,7 +164,13 @@ func (board *ChessBoard) DragEnd() {
 
 	moveStr := board.getMoveString()
 
-	_ = board.game.MoveStr(moveStr)
+	err := board.game.MoveStr(moveStr)
+	if err == nil {
+		board.lastMove = &lastMove{
+			originCell: board.movedPiece.startCell,
+			targetCell: board.movedPiece.endCell,
+		}
+	}
 	board.resetDragAndDrop()
 	board.updatePieces()
 	board.Refresh()
@@ -197,8 +211,8 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 	image.FillMode = canvas.ImageFillContain
 	board.movedPiece.piece = image
 	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
-	board.movedPiece.startCell = Cell{file: file, rank: rank}
-	board.movedPiece.endCell = Cell{file: file, rank: rank}
+	board.movedPiece.startCell = cell{file: file, rank: rank}
+	board.movedPiece.endCell = cell{file: file, rank: rank}
 	board.Refresh()
 }
 
@@ -217,14 +231,14 @@ func (board *ChessBoard) updateDragAndDrop(event *fyne.DragEvent) {
 	}
 
 	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
-	board.movedPiece.endCell = Cell{file: file, rank: rank}
+	board.movedPiece.endCell = cell{file: file, rank: rank}
 	board.Refresh()
 }
 
 func (board *ChessBoard) resetDragAndDrop() {
 	board.dragndropInProgress = false
 	board.movedPiece.location = fyne.Position{X: -1000, Y: -1000}
-	board.movedPiece.startCell = Cell{file: -1, rank: -1}
+	board.movedPiece.startCell = cell{file: -1, rank: -1}
 }
 
 func (board *ChessBoard) getMoveString() string {
