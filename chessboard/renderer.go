@@ -13,7 +13,6 @@ type Renderer struct {
 	boardWidget *ChessBoard
 
 	cells       [8][8]*canvas.Rectangle
-	pieces      [8][8]*canvas.Image
 	filesCoords [2][8]*canvas.Text
 	ranksCoords [2][8]*canvas.Text
 	playerTurn  *canvas.Circle
@@ -60,7 +59,7 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 
 	for rank := 0; rank < 8; rank++ {
 		for file := 0; file < 8; file++ {
-			piece := renderer.pieces[rank][file]
+			piece := renderer.boardWidget.pieces[rank][file]
 			if piece == nil {
 				continue
 			}
@@ -118,7 +117,7 @@ func (renderer Renderer) layoutCellsAndPieces(size fyne.Size) {
 			cellValue.Resize(cellsSize)
 			cellValue.Move(cellPosition)
 
-			currentPiece := renderer.pieces[lineIndex][colIndex]
+			currentPiece := renderer.boardWidget.pieces[lineIndex][colIndex]
 
 			if currentPiece != nil {
 				currentPiece.Resize(cellsSize)

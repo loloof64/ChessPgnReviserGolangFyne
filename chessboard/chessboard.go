@@ -48,6 +48,8 @@ type ChessBoard struct {
 
 	movedPiece          MovedPiece
 	dragndropInProgress bool
+
+	pieces [8][8]*canvas.Image
 }
 
 // CreateRenderer creates the board renderer.
@@ -59,20 +61,17 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	filesCoords := [2][8]*canvas.Text{}
 	ranksCoords := [2][8]*canvas.Text{}
 
-	cellsObjects := make([]fyne.CanvasObject, 0, 64)
-	piecesObjects := make([]fyne.CanvasObject, 0, 64)
-	coordsObjects := make([]fyne.CanvasObject, 0, 32)
-
-	cellsObjects, piecesObjects = board.buildCellsAndPieces(&cells, &pieces, cellsObjects, piecesObjects)
-	coordsObjects = board.buildFilesCoordinates(&filesCoords, coordsObjects)
-	coordsObjects = board.buildRanksCoordinates(&ranksCoords, coordsObjects)
+	board.buildCellsAndPieces(&cells, &pieces)
+	board.buildFilesCoordinates(&filesCoords)
+	board.buildRanksCoordinates(&ranksCoords)
 
 	playerTurn := board.buildPlayerTurn()
+
+	board.pieces = pieces
 
 	return Renderer{
 		boardWidget: board,
 		cells:       cells,
-		pieces:      pieces,
 		filesCoords: filesCoords,
 		ranksCoords: ranksCoords,
 		playerTurn:  playerTurn,
@@ -208,6 +207,7 @@ func (board *ChessBoard) DragEnd() {
 
 	_ = board.game.MoveStr(moveStr)
 	board.resetDragAndDrop()
+	board.updatePieces()
 	board.Refresh()
 }
 
@@ -229,9 +229,7 @@ func (board *ChessBoard) getMoveString() string {
 	)
 }
 
-func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image,
-	cellsObjects []fyne.CanvasObject, piecesObjects []fyne.CanvasObject) (
-	[]fyne.CanvasObject, []fyne.CanvasObject) {
+func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image) {
 	whiteCellColor := color.RGBA{255, 206, 158, 0xff}
 	blackCellColor := color.RGBA{209, 139, 71, 0xff}
 
@@ -246,7 +244,6 @@ func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pie
 			}
 			cellRef := canvas.NewRectangle(cellColor)
 			cells[line][col] = cellRef
-			cellsObjects = append(cellsObjects, cellRef)
 
 			square := chess.Square(col + 8*line)
 			pieceValue := board.game.Position().Board().Piece(square)
@@ -256,15 +253,12 @@ func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pie
 				image.FillMode = canvas.ImageFillContain
 
 				pieces[line][col] = image
-				piecesObjects = append(piecesObjects, image)
 			}
 		}
 	}
-
-	return cellsObjects, piecesObjects
 }
 
-func (board *ChessBoard) buildFilesCoordinates(filesCoords *[2][8]*canvas.Text, coordsObjects []fyne.CanvasObject) []fyne.CanvasObject {
+func (board *ChessBoard) buildFilesCoordinates(filesCoords *[2][8]*canvas.Text) {
 	coordsColor := color.RGBA{255, 199, 0, 0xff}
 	asciiLowerA := 97
 
@@ -275,15 +269,10 @@ func (board *ChessBoard) buildFilesCoordinates(filesCoords *[2][8]*canvas.Text, 
 
 		filesCoords[0][file] = topCoord
 		filesCoords[1][file] = bottomCoord
-		coordsObjects = append(coordsObjects, topCoord)
-		coordsObjects = append(coordsObjects, bottomCoord)
 	}
-
-	return coordsObjects
 }
 
-func (board *ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text,
-	coordsObjects []fyne.CanvasObject) []fyne.CanvasObject {
+func (board *ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text) {
 	coordsColor := color.RGBA{255, 199, 0, 0xff}
 	asciiOne := 49
 
@@ -294,11 +283,8 @@ func (board *ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text,
 
 		ranksCoords[0][rank] = leftCoord
 		ranksCoords[1][rank] = rightCoord
-		coordsObjects = append(coordsObjects, leftCoord)
-		coordsObjects = append(coordsObjects, rightCoord)
 	}
 
-	return coordsObjects
 }
 
 func (board *ChessBoard) buildPlayerTurn() *canvas.Circle {
@@ -311,4 +297,22 @@ func (board *ChessBoard) buildPlayerTurn() *canvas.Circle {
 	}
 
 	return canvas.NewCircle(playerTurnColor)
+}
+
+func (board *ChessBoard) updatePieces() {
+	for line := 0; line < 8; line++ {
+		for col := 0; col < 8; col++ {
+			board.pieces[line][col] = nil
+
+			square := chess.Square(col + 8*line)
+			pieceValue := board.game.Position().Board().Piece(square)
+			if pieceValue != chess.NoPiece {
+				imageResource := imageResourceFromPiece(pieceValue)
+				image := canvas.NewImageFromResource(&imageResource)
+				image.FillMode = canvas.ImageFillContain
+
+				board.pieces[line][col] = image
+			}
+		}
+	}
 }
