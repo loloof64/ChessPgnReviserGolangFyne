@@ -135,59 +135,10 @@ func (board *ChessBoard) SetOrientation(orientation BlackSide) {
 
 // Dragged handles the dragged event for the chess board.
 func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
-	cellsLength := int(float64(board.length) / 9)
-	halfCellsLength := int(float64(cellsLength) / 2)
-
 	if board.dragndropInProgress == false {
-
-		position := event.Position
-		// This is really needed to be coded as is !
-		// First file and rank, then bounds test, then adjust values with the board orientation
-		file := int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
-		rank := int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
-
-		inBounds := file >= 0 && file <= 7 && rank >= 0 && rank <= 7
-		if !inBounds {
-			return
-		}
-
-		if board.blackSide == BlackAtTop {
-			rank = 7 - rank
-		} else {
-			file = 7 - file
-		}
-
-		square := chess.Square(file + 8*rank)
-		pieceValue := board.game.Position().Board().Piece(square)
-
-		if pieceValue == chess.NoPiece {
-			return
-		}
-
-		board.dragndropInProgress = true
-
-		imageResource := imageResourceFromPiece(pieceValue)
-		image := canvas.NewImageFromResource(&imageResource)
-		image.FillMode = canvas.ImageFillContain
-		board.movedPiece.piece = image
-		board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
-		board.movedPiece.startCell = Cell{file: file, rank: rank}
-		board.movedPiece.endCell = Cell{file: file, rank: rank}
-		board.Refresh()
+		board.startDragAndDrop(event)
 	} else {
-		position := event.Position
-		var file, rank int
-		if board.blackSide == BlackAtTop {
-			file = int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
-			rank = 7 - int(math.Floor(float64(position.Y-halfCellsLength)/float64(cellsLength)))
-		} else {
-			file = 7 - int(math.Floor(float64(position.X-halfCellsLength)/float64(cellsLength)))
-			rank = int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
-		}
-
-		board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
-		board.movedPiece.endCell = Cell{file: file, rank: rank}
-		board.Refresh()
+		board.updateDragAndDrop(event)
 	}
 }
 
@@ -208,6 +159,65 @@ func (board *ChessBoard) DragEnd() {
 	_ = board.game.MoveStr(moveStr)
 	board.resetDragAndDrop()
 	board.updatePieces()
+	board.Refresh()
+}
+
+func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
+	cellsLength := int(float64(board.length) / 9)
+	halfCellsLength := int(float64(cellsLength) / 2)
+
+	position := event.Position
+	// This is really needed to be coded as is !
+	// First file and rank, then bounds test, then adjust values with the board orientation
+	file := int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
+	rank := int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+
+	inBounds := file >= 0 && file <= 7 && rank >= 0 && rank <= 7
+	if !inBounds {
+		return
+	}
+
+	if board.blackSide == BlackAtTop {
+		rank = 7 - rank
+	} else {
+		file = 7 - file
+	}
+
+	square := chess.Square(file + 8*rank)
+	pieceValue := board.game.Position().Board().Piece(square)
+
+	if pieceValue == chess.NoPiece {
+		return
+	}
+
+	board.dragndropInProgress = true
+
+	imageResource := imageResourceFromPiece(pieceValue)
+	image := canvas.NewImageFromResource(&imageResource)
+	image.FillMode = canvas.ImageFillContain
+	board.movedPiece.piece = image
+	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+	board.movedPiece.startCell = Cell{file: file, rank: rank}
+	board.movedPiece.endCell = Cell{file: file, rank: rank}
+	board.Refresh()
+}
+
+func (board *ChessBoard) updateDragAndDrop(event *fyne.DragEvent) {
+	cellsLength := int(float64(board.length) / 9)
+	halfCellsLength := int(float64(cellsLength) / 2)
+
+	position := event.Position
+	var file, rank int
+	if board.blackSide == BlackAtTop {
+		file = int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
+		rank = 7 - int(math.Floor(float64(position.Y-halfCellsLength)/float64(cellsLength)))
+	} else {
+		file = 7 - int(math.Floor(float64(position.X-halfCellsLength)/float64(cellsLength)))
+		rank = int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+	}
+
+	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+	board.movedPiece.endCell = Cell{file: file, rank: rank}
 	board.Refresh()
 }
 
