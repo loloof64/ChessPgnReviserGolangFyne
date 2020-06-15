@@ -91,7 +91,7 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 	result = append(result, renderer.playerTurn)
 
 	if renderer.boardWidget.dragndropInProgress {
-		result = append(result, renderer.boardWidget.movedPiece.piece)
+		result = append(result, renderer.boardWidget.movedPiece.pieceImage)
 	}
 
 	if renderer.boardWidget.lastMove != nil {
@@ -270,8 +270,8 @@ func (renderer Renderer) layoutMovedPieceIfAny(size fyne.Size) {
 	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
 
 	if renderer.boardWidget.dragndropInProgress {
-		renderer.boardWidget.movedPiece.piece.Resize(cellsSize)
-		renderer.boardWidget.movedPiece.piece.Move(renderer.boardWidget.movedPiece.location)
+		renderer.boardWidget.movedPiece.pieceImage.Resize(cellsSize)
+		renderer.boardWidget.movedPiece.pieceImage.Move(renderer.boardWidget.movedPiece.location)
 	}
 }
 

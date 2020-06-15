@@ -7,6 +7,8 @@ import (
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/dialog"
+	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
 	"github.com/notnil/chess"
@@ -38,24 +40,27 @@ type lastMove struct {
 }
 
 type movedPiece struct {
-	location  fyne.Position
-	piece     fyne.CanvasObject
-	startCell cell
-	endCell   cell
+	location   fyne.Position
+	pieceValue chess.Piece
+	pieceImage fyne.CanvasObject
+	startCell  cell
+	endCell    cell
 }
 
 // ChessBoard is a chess board widget.
 type ChessBoard struct {
 	widget.BaseWidget
 
-	game        chess.Game
-	blackSide   BlackSide
-	length      int
-	cellsLength int
-	lastMove    *lastMove
+	parent    *fyne.Window
+	game      chess.Game
+	blackSide BlackSide
+	length    int
+	lastMove  *lastMove
 
-	movedPiece          movedPiece
+	movedPiece          *movedPiece
 	dragndropInProgress bool
+	pendingPromotion    bool
+	promotionDialog     dialog.Dialog
 
 	pieces [8][8]*canvas.Image
 }
@@ -120,15 +125,12 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 }
 
 // NewChessBoard creates a new chess board.
-func NewChessBoard(length int) *ChessBoard {
+func NewChessBoard(length int, parent *fyne.Window) *ChessBoard {
 	chessBoard := &ChessBoard{
 		length:    length,
 		blackSide: BlackAtTop,
 		game:      *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
-		movedPiece: movedPiece{
-			startCell: cell{file: -1, rank: -1},
-			location:  fyne.Position{X: -1000, Y: -1000},
-		},
+		parent:    parent,
 	}
 	chessBoard.ExtendBaseWidget(chessBoard)
 
@@ -143,6 +145,10 @@ func (board *ChessBoard) SetOrientation(orientation BlackSide) {
 
 // Dragged handles the dragged event for the chess board.
 func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
+	if board.pendingPromotion {
+		return
+	}
+
 	if board.dragndropInProgress == false {
 		board.startDragAndDrop(event)
 	} else {
@@ -152,6 +158,10 @@ func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
 
 // DragEnd handles the drag end event for the chess board
 func (board *ChessBoard) DragEnd() {
+	if board.movedPiece == nil {
+		return
+	}
+
 	file := board.movedPiece.endCell.file
 	rank := board.movedPiece.endCell.rank
 
@@ -159,6 +169,34 @@ func (board *ChessBoard) DragEnd() {
 	if !inBounds {
 		board.resetDragAndDrop()
 		board.Refresh()
+		return
+	}
+
+	rank1 := 0
+	rank8 := 7
+
+	isPromotionMove :=
+		board.movedPiece != nil &&
+			(board.movedPiece.pieceValue == chess.WhitePawn && rank == rank8) ||
+			(board.movedPiece.pieceValue == chess.BlackPawn && rank == rank1)
+
+	if isPromotionMove {
+
+		fakeMoveTest := board.getMoveString()
+		fakeMoveTest = fmt.Sprintf("%s%s", fakeMoveTest, "q")
+
+		currentFen, _ := chess.FEN(board.game.FEN())
+		gameClone := chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), currentFen)
+		err := gameClone.MoveStr(fakeMoveTest)
+
+		if err != nil {
+			board.resetDragAndDrop()
+			board.Refresh()
+			return
+		}
+
+		board.pendingPromotion = true
+		board.launchPromotionDialog()
 		return
 	}
 
@@ -177,6 +215,7 @@ func (board *ChessBoard) DragEnd() {
 }
 
 func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
+
 	cellsLength := int(float64(board.length) / 9)
 	halfCellsLength := int(float64(cellsLength) / 2)
 
@@ -209,10 +248,13 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 	imageResource := imageResourceFromPiece(pieceValue)
 	image := canvas.NewImageFromResource(&imageResource)
 	image.FillMode = canvas.ImageFillContain
-	board.movedPiece.piece = image
-	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
-	board.movedPiece.startCell = cell{file: file, rank: rank}
-	board.movedPiece.endCell = cell{file: file, rank: rank}
+	movedPiece := movedPiece{}
+	movedPiece.pieceImage = image
+	movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+	movedPiece.startCell = cell{file: file, rank: rank}
+	movedPiece.endCell = cell{file: file, rank: rank}
+	movedPiece.pieceValue = pieceValue
+	board.movedPiece = &movedPiece
 	board.Refresh()
 }
 
@@ -339,4 +381,93 @@ func (board *ChessBoard) updatePieces() {
 			}
 		}
 	}
+}
+
+func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
+	if pieceType == chess.Pawn || pieceType == chess.King {
+		return
+	}
+
+	var promotionFen string
+	switch pieceType {
+	case chess.Queen:
+		promotionFen = "q"
+	case chess.Rook:
+		promotionFen = "r"
+	case chess.Bishop:
+		promotionFen = "b"
+	case chess.Knight:
+		promotionFen = "n"
+	}
+
+	moveStr := board.getMoveString()
+	moveStr = fmt.Sprintf("%s%s", moveStr, promotionFen)
+
+	err := board.game.MoveStr(moveStr)
+	if err == nil {
+		board.lastMove = &lastMove{
+			originCell: board.movedPiece.startCell,
+			targetCell: board.movedPiece.endCell,
+		}
+	}
+
+	board.pendingPromotion = false
+	board.resetDragAndDrop()
+	board.updatePieces()
+	board.Refresh()
+}
+
+func (board *ChessBoard) launchPromotionDialog() {
+	title := "Select the promotion piece"
+	dismiss := "Cancel"
+
+	var queenRes, rookRes, bishopRes, knightRes *fyne.StaticResource
+	if board.game.Position().Turn() == chess.White {
+		queenRes = resourceChessqlt45Svg
+		rookRes = resourceChessrlt45Svg
+		bishopRes = resourceChessblt45Svg
+		knightRes = resourceChessnlt45Svg
+	} else {
+		queenRes = resourceChessqdt45Svg
+		rookRes = resourceChessrdt45Svg
+		bishopRes = resourceChessbdt45Svg
+		knightRes = resourceChessndt45Svg
+	}
+
+	cellsLength := int(float64(board.length) / 9)
+	commonButtonsSize := fyne.NewSize(cellsLength, cellsLength)
+
+	queenButton := NewIconButton(queenRes, commonButtonsSize, func() {
+		board.commitPromotion(chess.Queen)
+		board.promotionDialog.Hide()
+	})
+
+	rookButton := NewIconButton(rookRes, commonButtonsSize, func() {
+		board.commitPromotion(chess.Rook)
+		board.promotionDialog.Hide()
+	})
+
+	bishopButton := NewIconButton(bishopRes, commonButtonsSize, func() {
+		board.commitPromotion(chess.Bishop)
+		board.promotionDialog.Hide()
+	})
+
+	knightButton := NewIconButton(knightRes, commonButtonsSize, func() {
+		board.commitPromotion(chess.Knight)
+		board.promotionDialog.Hide()
+	})
+
+	content := fyne.NewContainerWithLayout(layout.NewGridLayout(4))
+	content.AddObject(queenButton)
+	content.AddObject(rookButton)
+	content.AddObject(bishopButton)
+	content.AddObject(knightButton)
+
+	board.promotionDialog = dialog.NewCustom(title, dismiss, content, *board.parent)
+	board.promotionDialog.SetOnClosed(func() {
+		board.pendingPromotion = false
+		board.resetDragAndDrop()
+		board.Refresh()
+	})
+	board.promotionDialog.Show()
 }

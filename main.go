@@ -11,9 +11,10 @@ import (
 func main() {
 	app := app.New()
 
-	boardOrientation := chessboard.BlackAtBottom
+	mainWindow := app.NewWindow("Chess Pgn Reviser")
 
-	chessboardComponent := chessboard.NewChessBoard(400)
+	boardOrientation := chessboard.BlackAtBottom
+	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
 	reverseBoardButton := widget.NewButtonWithIcon("", resourceReverseSvg, func() {
 		if boardOrientation == chessboard.BlackAtBottom {
 			boardOrientation = chessboard.BlackAtTop
@@ -30,7 +31,6 @@ func main() {
 		reverseBoardButton,
 	)
 
-	mainWindow := app.NewWindow("Chess Pgn Reviser")
 	mainWindow.SetContent(mainContent)
 
 	mainWindow.ShowAndRun()
