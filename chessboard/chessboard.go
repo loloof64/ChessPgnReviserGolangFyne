@@ -239,6 +239,12 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 	square := chess.Square(file + 8*rank)
 	pieceValue := board.game.Position().Board().Piece(square)
 
+	pieceSide := pieceValue.Color()
+	pieceBelongsToSideInTurn := pieceSide == board.game.Position().Turn()
+	if !pieceBelongsToSideInTurn {
+		return
+	}
+
 	if pieceValue == chess.NoPiece {
 		return
 	}
