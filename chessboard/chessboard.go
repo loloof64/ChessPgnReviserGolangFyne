@@ -147,6 +147,7 @@ func (board *ChessBoard) NewGame() {
 
 	board.game = *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), startFen)
 	board.gameInProgress = true
+	board.lastMove = nil
 
 	board.updatePieces()
 	board.Refresh()
