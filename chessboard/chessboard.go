@@ -58,6 +58,7 @@ type ChessBoard struct {
 	lastMove  *lastMove
 
 	movedPiece          *movedPiece
+	gameInProgress      bool
 	dragndropInProgress bool
 	pendingPromotion    bool
 	promotionDialog     dialog.Dialog
@@ -126,15 +127,29 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 
 // NewChessBoard creates a new chess board.
 func NewChessBoard(length int, parent *fyne.Window) *ChessBoard {
+	customFen, _ := chess.FEN("8/8/8/8/8/8/8/8 w - - 0 1")
+
 	chessBoard := &ChessBoard{
 		length:    length,
 		blackSide: BlackAtTop,
-		game:      *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{})),
+		game:      *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), customFen),
 		parent:    parent,
 	}
 	chessBoard.ExtendBaseWidget(chessBoard)
 
 	return chessBoard
+}
+
+// NewGame starts a new game
+func (board *ChessBoard) NewGame() {
+	standardFen := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	startFen, _ := chess.FEN(standardFen)
+
+	board.game = *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), startFen)
+	board.gameInProgress = true
+
+	board.updatePieces()
+	board.Refresh()
 }
 
 // SetOrientation sets the orientation of the board, putting the black side at the requested side.
@@ -216,6 +231,10 @@ func (board *ChessBoard) DragEnd() {
 
 func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 
+	if !board.gameInProgress {
+		return
+	}
+
 	cellsLength := int(float64(board.length) / 9)
 	halfCellsLength := int(float64(cellsLength) / 2)
 
@@ -265,6 +284,10 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 }
 
 func (board *ChessBoard) updateDragAndDrop(event *fyne.DragEvent) {
+	if !board.gameInProgress {
+		return
+	}
+
 	cellsLength := int(float64(board.length) / 9)
 	halfCellsLength := int(float64(cellsLength) / 2)
 

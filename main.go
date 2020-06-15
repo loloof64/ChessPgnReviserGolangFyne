@@ -15,7 +15,12 @@ func main() {
 
 	boardOrientation := chessboard.BlackAtBottom
 	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
-	reverseBoardButton := widget.NewButtonWithIcon("", resourceReverseSvg, func() {
+
+	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
+		chessboardComponent.NewGame()
+	})
+
+	reverseBoardItem := widget.NewToolbarAction(resourceReverseSvg, func() {
 		if boardOrientation == chessboard.BlackAtBottom {
 			boardOrientation = chessboard.BlackAtTop
 		} else {
@@ -24,11 +29,13 @@ func main() {
 		chessboardComponent.SetOrientation(boardOrientation)
 	})
 
+	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem)
+
 	mainLayout := layout.NewVBoxLayout()
 	mainContent := fyne.NewContainerWithLayout(
 		mainLayout,
+		toolbar,
 		chessboardComponent,
-		reverseBoardButton,
 	)
 
 	mainWindow.SetContent(mainContent)

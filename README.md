@@ -9,6 +9,7 @@ Using chess vectors from [Wikimedia Commons](https://commons.wikimedia.org/wiki/
 Using some icons from [flaticon](https://www.flaticon.com/):
 
 * swap (reverse) by Good Ware
+* racing flag (start) by SmashIcons
 
 ## For developers
 
