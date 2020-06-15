@@ -3,6 +3,7 @@ package main
 import (
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
+	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
@@ -27,6 +28,18 @@ func main() {
 			boardOrientation = chessboard.BlackAtBottom
 		}
 		chessboardComponent.SetOrientation(boardOrientation)
+	})
+
+	chessboardComponent.SetOnWhiteWinHandler(func() {
+		dialog.ShowInformation("Game finished", "White has won.", mainWindow)
+	})
+
+	chessboardComponent.SetOnBlackWinHandler(func() {
+		dialog.ShowInformation("Game finished", "Black has won.", mainWindow)
+	})
+
+	chessboardComponent.SetOnDrawHandler(func() {
+		dialog.ShowInformation("Game finished", "Draw.", mainWindow)
 	})
 
 	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem)

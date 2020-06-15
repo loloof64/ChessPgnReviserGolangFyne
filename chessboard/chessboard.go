@@ -25,6 +25,23 @@ const (
 	BlackAtBottom
 )
 
+// GameEndStatus defines the finished status of the game.
+type GameEndStatus int
+
+const (
+	// NotFinished says that the game is neither won, neither draw.
+	NotFinished GameEndStatus = iota
+
+	// WhiteWon says that white side won.
+	WhiteWon
+
+	// BlackWon says that black side won.
+	BlackWon
+
+	// Draw says that game ended in a draw.
+	Draw
+)
+
 type cell struct {
 	file int
 	rank int
@@ -63,6 +80,10 @@ type ChessBoard struct {
 	pendingPromotion    bool
 	promotionDialog     dialog.Dialog
 
+	onWhiteWin func()
+	onBlackWin func()
+	onDraw     func()
+
 	pieces [8][8]*canvas.Image
 }
 
@@ -90,6 +111,21 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 		ranksCoords: ranksCoords,
 		playerTurn:  playerTurn,
 	}
+}
+
+// SetOnWhiteWinHandler sets the handler for white side win.
+func (board *ChessBoard) SetOnWhiteWinHandler(handler func()) {
+	board.onWhiteWin = handler
+}
+
+// SetOnBlackWinHandler sets the handler for black side win.
+func (board *ChessBoard) SetOnBlackWinHandler(handler func()) {
+	board.onBlackWin = handler
+}
+
+// SetOnDrawHandler sets the handler for draw.
+func (board *ChessBoard) SetOnDrawHandler(handler func()) {
+	board.onDraw = handler
 }
 
 func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
@@ -148,6 +184,7 @@ func (board *ChessBoard) NewGame() {
 	board.game = *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), startFen)
 	board.gameInProgress = true
 	board.lastMove = nil
+	board.pendingPromotion = false
 
 	board.updatePieces()
 	board.Refresh()
@@ -174,6 +211,10 @@ func (board *ChessBoard) Dragged(event *fyne.DragEvent) {
 
 // DragEnd handles the drag end event for the chess board
 func (board *ChessBoard) DragEnd() {
+	if !board.gameInProgress {
+		return
+	}
+
 	if board.movedPiece == nil {
 		return
 	}
@@ -228,6 +269,8 @@ func (board *ChessBoard) DragEnd() {
 	board.resetDragAndDrop()
 	board.updatePieces()
 	board.Refresh()
+
+	board.handleGameEndedStatus()
 }
 
 func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
@@ -445,6 +488,30 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 	board.resetDragAndDrop()
 	board.updatePieces()
 	board.Refresh()
+
+	board.handleGameEndedStatus()
+}
+
+func (board *ChessBoard) handleGameEndedStatus() {
+	gameOutcome := board.game.Outcome()
+	switch gameOutcome {
+	case chess.WhiteWon:
+		board.gameInProgress = false
+		if board.onWhiteWin != nil {
+			board.onWhiteWin()
+		}
+	case chess.BlackWon:
+		board.gameInProgress = false
+		if board.onBlackWin != nil {
+			board.onBlackWin()
+		}
+	case chess.Draw:
+		board.gameInProgress = false
+		if board.onDraw != nil {
+			board.onDraw()
+		}
+	}
+
 }
 
 func (board *ChessBoard) launchPromotionDialog() {
