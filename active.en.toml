@@ -1,0 +1,7 @@
+AppTitle = "Chess pgn reviser"
+BlackWon = "Black has won."
+Draw = "Draw."
+GameFinished = "Game finished"
+WhiteWon = "White has won."
+promotionDialogDismissButton = "Cancel"
+promotionDialogTitle = "Choose the promotion piece :"

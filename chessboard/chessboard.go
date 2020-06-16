@@ -11,6 +11,7 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
+	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/notnil/chess"
 )
 
@@ -83,6 +84,8 @@ type ChessBoard struct {
 	onWhiteWin func()
 	onBlackWin func()
 	onDraw     func()
+
+	localizer *i18n.Localizer
 
 	pieces [8][8]*canvas.Image
 }
@@ -162,7 +165,7 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 }
 
 // NewChessBoard creates a new chess board.
-func NewChessBoard(length int, parent *fyne.Window) *ChessBoard {
+func NewChessBoard(length int, parent *fyne.Window, localizer *i18n.Localizer) *ChessBoard {
 	customFen, _ := chess.FEN("8/8/8/8/8/8/8/8 w - - 0 1")
 
 	chessBoard := &ChessBoard{
@@ -170,6 +173,7 @@ func NewChessBoard(length int, parent *fyne.Window) *ChessBoard {
 		blackSide: BlackAtTop,
 		game:      *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), customFen),
 		parent:    parent,
+		localizer: localizer,
 	}
 	chessBoard.ExtendBaseWidget(chessBoard)
 
@@ -515,8 +519,12 @@ func (board *ChessBoard) handleGameEndedStatus() {
 }
 
 func (board *ChessBoard) launchPromotionDialog() {
-	title := "Select the promotion piece"
-	dismiss := "Cancel"
+	title := board.localizer.MustLocalize(&i18n.LocalizeConfig{
+		MessageID: "promotionDialogTitle",
+	})
+	dismiss := board.localizer.MustLocalize(&i18n.LocalizeConfig{
+		MessageID: "promotionDialogDismissButton",
+	})
 
 	var queenRes, rookRes, bishopRes, knightRes *fyne.StaticResource
 	if board.game.Position().Turn() == chess.White {

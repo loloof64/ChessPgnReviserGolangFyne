@@ -13,6 +13,6 @@ Using some icons from [flaticon](https://www.flaticon.com/):
 
 ## For developers
 
-Do not forget to install fyne command tools, if you want to launch the bundle scripts:
+* Do not forget to install fyne command tools, if you want to launch the bundle scripts: `go get http://fyne.io/fyne/cmd/fyne`,
 
-`go get http://fyne.io/fyne/cmd/fyne`
+* Also, in order to update translations, follow [this page](https://github.com/nicksnyder/go-i18n).
