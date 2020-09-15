@@ -52,6 +52,10 @@ func main() {
 		chessboardComponent.SetOrientation(boardOrientation)
 	})
 
+	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {
+
+	})
+
 	gameFinished := localizer.MustLocalize(&i18n.LocalizeConfig{
 		MessageID: "GameFinished",
 	})
@@ -80,7 +84,7 @@ func main() {
 		dialog.ShowInformation(gameFinished, draw, mainWindow)
 	})
 
-	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem)
+	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem)
 
 	mainLayout := layout.NewVBoxLayout()
 	mainContent := fyne.NewContainerWithLayout(
