@@ -34,6 +34,7 @@ func main() {
 	}
 
 	app := app.New()
+	app.SetIcon(resourceChessPng)
 
 	title := ini.String("general.title")
 	mainWindow := app.NewWindow(title)
