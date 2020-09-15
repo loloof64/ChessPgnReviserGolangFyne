@@ -4,7 +4,7 @@ other = "Chess pgn reviser"
 
 [BlackWon]
 hash = "sha1-5fc05f7cf096309c51d1887970f95bb887ede87e"
-other = "Negro ganado."
+other = "Negro ganado por jaque mate."
 
 [Draw]
 hash = "sha1-fdd69537f848b933e0a3afaeb5aa02834ba93c22"
@@ -16,7 +16,7 @@ other = "Final de juego."
 
 [WhiteWon]
 hash = "sha1-fdcb7c1b52c6aab1f270325e290085a6c3ab4af7"
-other = "Blanco ganado."
+other = "Blanco ganado por jaque mate."
 
 [promotionDialogDismissButton]
 hash = "sha1-77dfd2135f4db726c47299bb55be26f7f4525a46"

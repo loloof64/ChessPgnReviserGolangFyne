@@ -8,5 +8,6 @@ require (
 	github.com/cloudfoundry-attic/jibber_jabber v0.0.0-20151120183258-bcc4c8345a21
 	github.com/nicksnyder/go-i18n/v2 v2.0.3
 	github.com/notnil/chess v1.2.0
-	golang.org/x/text v0.3.2
+	golang.org/x/text v0.3.3
+	gopkg.in/yaml.v2 v2.3.0
 )
