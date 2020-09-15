@@ -6,12 +6,29 @@ import (
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+	"github.com/cloudfoundry-attic/jibber_jabber"
 	"github.com/gookit/ini/v2"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
 )
 
 func main() {
-	err := ini.LoadExists("config/locales/en.ini", "config/locales/es.ini", "config/locales/fr.ini")
+	lang, err := jibber_jabber.DetectLanguage()
+	if err != nil {
+		lang = "en"
+	}
+
+	langFiles := map[string]string{
+		"en": "config/locales/en.ini",
+		"fr": "config/locales/fr.ini",
+		"es": "config/locales/es.ini",
+	}
+
+	langFileToLoad, found := langFiles[lang]
+	if !found {
+		langFileToLoad = langFiles["en"]
+	}
+
+	err = ini.LoadExists(langFileToLoad)
 	if err != nil {
 		panic(err)
 	}
