@@ -11,7 +11,7 @@ import (
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
 
-	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/gookit/ini/v2"
 	"github.com/notnil/chess"
 )
 
@@ -84,8 +84,6 @@ type ChessBoard struct {
 	onWhiteWin func()
 	onBlackWin func()
 	onDraw     func()
-
-	localizer *i18n.Localizer
 
 	pieces [8][8]*canvas.Image
 }
@@ -165,7 +163,7 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 }
 
 // NewChessBoard creates a new chess board.
-func NewChessBoard(length int, parent *fyne.Window, localizer *i18n.Localizer) *ChessBoard {
+func NewChessBoard(length int, parent *fyne.Window) *ChessBoard {
 	customFen, _ := chess.FEN("8/8/8/8/8/8/8/8 w - - 0 1")
 
 	chessBoard := &ChessBoard{
@@ -173,7 +171,6 @@ func NewChessBoard(length int, parent *fyne.Window, localizer *i18n.Localizer) *
 		blackSide: BlackAtTop,
 		game:      *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), customFen),
 		parent:    parent,
-		localizer: localizer,
 	}
 	chessBoard.ExtendBaseWidget(chessBoard)
 
@@ -275,6 +272,39 @@ func (board *ChessBoard) DragEnd() {
 	board.Refresh()
 
 	board.handleGameEndedStatus()
+}
+
+// ClaimDraw emits a draw claim (for 3-folds repetitions, or for 50-moves rule).
+// Returns true if the draw has been accepted, otherwise false.
+func (board *ChessBoard) ClaimDraw() bool {
+	possibleDraws := board.game.EligibleDraws()
+	drawByThreefoldRepetition, drawByFiftyMovesRule := false, false
+
+	for _, item := range possibleDraws {
+		if item == chess.ThreefoldRepetition {
+			drawByThreefoldRepetition = true
+			break
+		} else if item == chess.FiftyMoveRule {
+			drawByFiftyMovesRule = true
+			break
+		}
+	}
+
+	if drawByThreefoldRepetition {
+		err := board.game.Draw(chess.ThreefoldRepetition)
+		if err != nil {
+			return true
+		}
+	}
+
+	if drawByFiftyMovesRule {
+		err := board.game.Draw(chess.FiftyMoveRule)
+		if err != nil {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
@@ -519,12 +549,8 @@ func (board *ChessBoard) handleGameEndedStatus() {
 }
 
 func (board *ChessBoard) launchPromotionDialog() {
-	title := board.localizer.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "promotionDialogTitle",
-	})
-	dismiss := board.localizer.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "promotionDialogDismissButton",
-	})
+	title := ini.String("promotionDialog.title")
+	dismiss := ini.String("promotionDialog.dismissButton")
 
 	var queenRes, rookRes, bishopRes, knightRes *fyne.StaticResource
 	if board.game.Position().Turn() == chess.White {

@@ -6,38 +6,23 @@ import (
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
-	"github.com/BurntSushi/toml"
-	"github.com/cloudfoundry-attic/jibber_jabber"
+	"github.com/gookit/ini/v2"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"golang.org/x/text/language"
 )
 
 func main() {
-	bundle := i18n.NewBundle(language.English)
-	bundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	bundle.MustLoadMessageFile("active.en.toml")
-	bundle.MustLoadMessageFile("active.fr.toml")
-	bundle.MustLoadMessageFile("active.es.toml")
-
-	lang, err := jibber_jabber.DetectLanguage()
+	err := ini.LoadExists("config/locales/en.ini", "config/locales/es.ini", "config/locales/fr.ini")
 	if err != nil {
-		lang = "en"
+		panic(err)
 	}
-
-	localizer := i18n.NewLocalizer(
-		bundle, lang,
-	)
 
 	app := app.New()
 
-	title := localizer.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "AppTitle",
-	})
+	title := ini.String("general.title")
 	mainWindow := app.NewWindow(title)
 
 	boardOrientation := chessboard.BlackAtBottom
-	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow, localizer)
+	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
 
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
 		chessboardComponent.NewGame()
@@ -52,25 +37,13 @@ func main() {
 		chessboardComponent.SetOrientation(boardOrientation)
 	})
 
-	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {
+	gameFinished := ini.String("general.gameFinished")
 
-	})
+	whiteWon := ini.String("gameResult.whiteWon")
 
-	gameFinished := localizer.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "GameFinished",
-	})
+	blackWon := ini.String("gameResult.blackWon")
 
-	whiteWon := localizer.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "WhiteWon",
-	})
-
-	blackWon := localizer.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "BlackWon",
-	})
-
-	draw := localizer.MustLocalize(&i18n.LocalizeConfig{
-		MessageID: "Draw",
-	})
+	draw := ini.String("gameResult.draw")
 
 	chessboardComponent.SetOnWhiteWinHandler(func() {
 		dialog.ShowInformation(gameFinished, whiteWon, mainWindow)
@@ -82,6 +55,19 @@ func main() {
 
 	chessboardComponent.SetOnDrawHandler(func() {
 		dialog.ShowInformation(gameFinished, draw, mainWindow)
+	})
+
+	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {
+		drawAcceptedMessage := ini.String("drawClaim.accepted")
+
+		drawRefusedMessage := ini.String("drawClaim.rejected")
+
+		accepted := chessboardComponent.ClaimDraw()
+		if accepted {
+			dialog.ShowInformation(gameFinished, drawAcceptedMessage, mainWindow)
+		} else {
+			dialog.ShowInformation(gameFinished, drawRefusedMessage, mainWindow)
+		}
 	})
 
 	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem)
