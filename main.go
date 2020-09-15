@@ -9,6 +9,7 @@ import (
 	"github.com/cloudfoundry-attic/jibber_jabber"
 	"github.com/gookit/ini/v2"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
+	"github.com/loloof64/chess-pgn-reviser-fyne/history"
 )
 
 func main() {
@@ -41,6 +42,7 @@ func main() {
 
 	boardOrientation := chessboard.BlackAtBottom
 	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
+	historyComponent := history.NewHistory(fyne.NewSize(400, 400))
 
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
 		chessboardComponent.NewGame()
@@ -90,11 +92,13 @@ func main() {
 
 	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem)
 
+	gameZone := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), chessboardComponent, historyComponent)
+
 	mainLayout := layout.NewVBoxLayout()
 	mainContent := fyne.NewContainerWithLayout(
 		mainLayout,
 		toolbar,
-		chessboardComponent,
+		gameZone,
 	)
 
 	mainWindow.SetContent(mainContent)
