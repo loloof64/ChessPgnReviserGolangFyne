@@ -10,8 +10,9 @@ import (
 	"fyne.io/fyne/widget"
 )
 
-type gameMove struct {
-	san string
+// GameMove defines a move of the History widget.
+type GameMove struct {
+	San string
 }
 
 // History is a widget that shows the played moves, and is intended to
@@ -20,20 +21,21 @@ type History struct {
 	widget.BaseWidget
 
 	preferredSize fyne.Size
-	moves         []gameMove
+	moves         []GameMove
+
+	container *fyne.Container
 }
 
 type historyRenderer struct {
-	container *fyne.Container
-	history   *History
+	history *History
 }
 
 func (renderer *historyRenderer) MinSize() fyne.Size {
-	return renderer.container.MinSize()
+	return renderer.history.container.MinSize()
 }
 
 func (renderer *historyRenderer) Layout(size fyne.Size) {
-	renderer.container.Layout.Layout(renderer.container.Objects, size)
+	renderer.history.container.Layout.Layout(renderer.history.container.Objects, size)
 }
 
 func (renderer *historyRenderer) ApplyTheme() {
@@ -45,11 +47,11 @@ func (renderer *historyRenderer) BackgroundColor() color.Color {
 }
 
 func (renderer *historyRenderer) Refresh() {
-	canvas.Refresh(renderer.container)
+	canvas.Refresh(renderer.history.container)
 }
 
 func (renderer *historyRenderer) Objects() []fyne.CanvasObject {
-	return []fyne.CanvasObject{renderer.container}
+	return []fyne.CanvasObject{renderer.history.container}
 }
 
 func (renderer *historyRenderer) Destroy() {
@@ -60,12 +62,28 @@ func NewHistory(preferredSize fyne.Size) *History {
 	history := &History{preferredSize: preferredSize}
 	history.ExtendBaseWidget(history)
 
+	history.container = fyne.NewContainerWithLayout(layout.NewGridWrapLayout(history.preferredSize))
+
 	return history
 }
 
 // CreateRenderer creates the Renderer for History widget.
 func (history *History) CreateRenderer() fyne.WidgetRenderer {
 	renderer := &historyRenderer{history: history}
-	renderer.container = fyne.NewContainerWithLayout(layout.NewGridWrapLayout(history.preferredSize))
 	return renderer
+}
+
+// AddMove adds a move to the History widget.
+func (history *History) AddMove(move GameMove) {
+	history.moves = append(history.moves, move)
+	moveComponent := widget.NewButton(move.San, func() {})
+	history.container.AddObject(moveComponent)
+	history.Refresh()
+}
+
+// Clear clears all moves from the History widget.
+func (history *History) Clear() {
+	history.moves = nil
+	history.container.Objects = nil
+	history.Refresh()
 }
