@@ -50,6 +50,7 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 		}
 		if w+size.Width > containerSize.Width {
 			pos = fyne.NewPos(0, h+currMaxH)
+			h += currMaxH
 			currMaxH = 0
 			w = 0
 		} else {
@@ -58,7 +59,7 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 		w += size.Width
 
 		//
-		fmt.Println("index", i, ", size, ", size, "|", "pos", pos)
+		fmt.Printf("index %v | size: %v | pos: %v \n", i, pos, size)
 		//
 	}
 }
