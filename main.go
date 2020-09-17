@@ -10,6 +10,8 @@ import (
 	"github.com/gookit/ini/v2"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
 	"github.com/loloof64/chess-pgn-reviser-fyne/history"
+
+	"fmt"
 )
 
 func main() {
@@ -45,11 +47,8 @@ func main() {
 	historyComponent := history.NewHistory(fyne.NewSize(400, 400))
 
 	//
-	for i := 0; i < 8; i++ {
-		historyComponent.AddMove(history.GameMove{San: "e4"})
-		historyComponent.AddMove(history.GameMove{San: "e5"})
-		historyComponent.AddMove(history.GameMove{San: "Nf3"})
-		historyComponent.AddMove(history.GameMove{San: "Nc6"})
+	for i := 0; i < 100; i++ {
+		historyComponent.AddMove(history.GameMove{San: fmt.Sprintf("#%v", i+1)})
 	}
 	//
 

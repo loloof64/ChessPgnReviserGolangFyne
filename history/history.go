@@ -50,16 +50,23 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 		}
 		if w+size.Width > containerSize.Width {
 			pos = fyne.NewPos(0, h+currMaxH)
+			// We must commit this position modification
+			// to the current element.
+			o.Move(pos)
 			h += currMaxH
 			currMaxH = 0
 			w = 0
-		} else {
+		} else if i > 0 {
+			// We must commit this position modification
+			// to the current element.
+			// Except for the first element, which is well placed at (0,0).
 			pos = pos.Add(fyne.NewPos(size.Width, 0))
+			o.Move(pos)
 		}
 		w += size.Width
 
 		//
-		fmt.Printf("index %v | size: %v | pos: %v \n", i, pos, size)
+		fmt.Printf("index %v | size: %v | pos: %v \n", i, size, pos)
 		//
 	}
 }
