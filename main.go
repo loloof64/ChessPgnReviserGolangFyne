@@ -45,9 +45,10 @@ func main() {
 	boardOrientation := chessboard.BlackAtBottom
 	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
 	historyComponent := history.NewHistory(fyne.NewSize(400, 400))
+	historyZone := widget.NewVScrollContainer(historyComponent)
 
 	//
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 500; i++ {
 		historyComponent.AddMove(history.GameMove{San: fmt.Sprintf("#%v", i+1)})
 	}
 	//
@@ -100,7 +101,7 @@ func main() {
 
 	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem)
 
-	gameZone := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), chessboardComponent, historyComponent)
+	gameZone := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), chessboardComponent, historyZone)
 
 	mainLayout := layout.NewVBoxLayout()
 	mainContent := fyne.NewContainerWithLayout(

@@ -1,7 +1,6 @@
 package history
 
 import (
-	"fmt"
 	"image/color"
 
 	"fyne.io/fyne"
@@ -64,10 +63,6 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 			o.Move(pos)
 		}
 		w += size.Width
-
-		//
-		fmt.Printf("index %v | size: %v | pos: %v \n", i, size, pos)
-		//
 	}
 }
 
