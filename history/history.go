@@ -12,6 +12,7 @@ import (
 // HistoryLayout defines the layout of the History widget.
 type HistoryLayout struct {
 	width int
+	gap   fyne.Size
 }
 
 func (l HistoryLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
@@ -21,9 +22,9 @@ func (l HistoryLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 		childSize := obj.MinSize()
 
 		if w+childSize.Width <= l.width {
-			w += childSize.Width
+			w += childSize.Width + l.gap.Width
 		} else {
-			h += currMaxH
+			h += currMaxH + l.gap.Height
 			w = childSize.Width
 			currMaxH = 0
 		}
@@ -48,26 +49,26 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 			currMaxH = size.Height
 		}
 		if w+size.Width > containerSize.Width {
-			pos = fyne.NewPos(0, h+currMaxH)
+			pos = fyne.NewPos(0, h+currMaxH+l.gap.Height)
 			// We must commit this position modification
 			// to the current element.
 			o.Move(pos)
-			h += currMaxH
+			h += currMaxH + l.gap.Height
 			currMaxH = 0
 			w = 0
 		} else if i > 0 {
 			// We must commit this position modification
 			// to the current element.
 			// Except for the first element, which is well placed at (0,0).
-			pos = pos.Add(fyne.NewPos(size.Width, 0))
+			pos = pos.Add(fyne.NewPos(size.Width+l.gap.Width, 0))
 			o.Move(pos)
 		}
-		w += size.Width
+		w += size.Width + l.gap.Width
 	}
 }
 
 func newHistoryLayout(width int) HistoryLayout {
-	return HistoryLayout{width: width}
+	return HistoryLayout{width: width, gap: fyne.NewSize(5, 8)}
 }
 
 // GameMove defines a move of the History widget.
