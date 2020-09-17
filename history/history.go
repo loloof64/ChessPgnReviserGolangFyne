@@ -1,6 +1,7 @@
 package history
 
 import (
+	"fmt"
 	"image/color"
 
 	"fyne.io/fyne"
@@ -39,9 +40,10 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 	pos := fyne.NewPos(0, 0)
 	w, h, currMaxH := 0, 0, 0
 
-	for _, o := range objects {
+	for i, o := range objects {
 		size := o.MinSize()
 		o.Resize(size)
+		o.Move(pos)
 
 		if size.Height > currMaxH {
 			currMaxH = size.Height
@@ -55,7 +57,9 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 		}
 		w += size.Width
 
-		o.Move(pos)
+		//
+		fmt.Println("index", i, ", size, ", size, "|", "pos", pos)
+		//
 	}
 }
 

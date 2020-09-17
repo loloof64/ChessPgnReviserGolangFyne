@@ -45,12 +45,13 @@ func main() {
 	historyComponent := history.NewHistory(fyne.NewSize(400, 400))
 
 	//
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 8; i++ {
 		historyComponent.AddMove(history.GameMove{San: "e4"})
 		historyComponent.AddMove(history.GameMove{San: "e5"})
 		historyComponent.AddMove(history.GameMove{San: "Nf3"})
 		historyComponent.AddMove(history.GameMove{San: "Nc6"})
 	}
+	//
 
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
 		chessboardComponent.NewGame()
