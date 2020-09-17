@@ -51,6 +51,10 @@ func main() {
 	for i := 0; i < 500; i++ {
 		historyComponent.AddMove(history.GameMove{San: fmt.Sprintf("#%v", i+1)})
 	}
+	historyComponent.Clear()
+	for i := 0; i < 300; i++ {
+		historyComponent.AddMove(history.GameMove{San: fmt.Sprintf("#%v", i+1)})
+	}
 	//
 
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {

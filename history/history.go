@@ -33,7 +33,8 @@ func (l HistoryLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 		}
 	}
 
-	return fyne.NewSize(l.width, h)
+	// We must not forget last line !
+	return fyne.NewSize(l.width, h+currMaxH)
 }
 
 func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size) {
