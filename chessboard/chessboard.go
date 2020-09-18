@@ -84,6 +84,7 @@ type ChessBoard struct {
 	onWhiteWin func()
 	onBlackWin func()
 	onDraw     func()
+	onMoveDone func(fan string)
 
 	pieces [8][8]*canvas.Image
 }
@@ -127,6 +128,11 @@ func (board *ChessBoard) SetOnBlackWinHandler(handler func()) {
 // SetOnDrawHandler sets the handler for draw.
 func (board *ChessBoard) SetOnDrawHandler(handler func()) {
 	board.onDraw = handler
+}
+
+// SetOnMoveDoneHandler sets the handler for moves done on the chess board widget.
+func (board *ChessBoard) SetOnMoveDoneHandler(handler func(fan string)) {
+	board.onMoveDone = handler
 }
 
 func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
@@ -245,7 +251,15 @@ func (board *ChessBoard) DragEnd() {
 
 		currentFen, _ := chess.FEN(board.game.FEN())
 		gameClone := chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), currentFen)
-		err := gameClone.MoveStr(fakeMoveTest)
+		fakeMoveToBeDone, moveErr := chess.LongAlgebraicNotation{}.Decode(gameClone.Position(), fakeMoveTest)
+
+		if moveErr != nil {
+			board.resetDragAndDrop()
+			board.Refresh()
+			return
+		}
+
+		err := gameClone.Move(fakeMoveToBeDone)
 
 		if err != nil {
 			board.resetDragAndDrop()
@@ -259,13 +273,21 @@ func (board *ChessBoard) DragEnd() {
 	}
 
 	moveStr := board.getMoveString()
+	moveToBeDone, moveErr := chess.LongAlgebraicNotation{}.Decode(board.game.Position(), moveStr)
+	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
 
-	err := board.game.MoveStr(moveStr)
+	if moveErr != nil {
+		board.resetDragAndDrop()
+		board.Refresh()
+	}
+
+	err := board.game.Move(moveToBeDone)
 	if err == nil {
 		board.lastMove = &lastMove{
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
+		board.onMoveDone(moveSan)
 	}
 	board.resetDragAndDrop()
 	board.updatePieces()
@@ -510,12 +532,23 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 	moveStr := board.getMoveString()
 	moveStr = fmt.Sprintf("%s%s", moveStr, promotionFen)
 
-	err := board.game.MoveStr(moveStr)
+	moveToBeDone, moveErr := chess.LongAlgebraicNotation{}.Decode(board.game.Position(), moveStr)
+
+	if moveErr != nil {
+		board.pendingPromotion = false
+		board.resetDragAndDrop()
+		board.Refresh()
+	}
+
+	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
+
+	err := board.game.Move(moveToBeDone)
 	if err == nil {
 		board.lastMove = &lastMove{
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
+		board.onMoveDone(moveSan)
 	}
 
 	board.pendingPromotion = false

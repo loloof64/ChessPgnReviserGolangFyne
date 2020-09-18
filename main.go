@@ -10,8 +10,6 @@ import (
 	"github.com/gookit/ini/v2"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
 	"github.com/loloof64/chess-pgn-reviser-fyne/history"
-
-	"fmt"
 )
 
 func main() {
@@ -47,16 +45,6 @@ func main() {
 	historyComponent := history.NewHistory(fyne.NewSize(400, 400))
 	historyZone := widget.NewVScrollContainer(historyComponent)
 
-	//
-	for i := 0; i < 500; i++ {
-		historyComponent.AddMove(history.GameMove{San: fmt.Sprintf("#%v", i+1)})
-	}
-	historyComponent.Clear()
-	for i := 0; i < 300; i++ {
-		historyComponent.AddMove(history.GameMove{San: fmt.Sprintf("#%v", i+1)})
-	}
-	//
-
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
 		chessboardComponent.NewGame()
 	})
@@ -88,6 +76,10 @@ func main() {
 
 	chessboardComponent.SetOnDrawHandler(func() {
 		dialog.ShowInformation(gameFinished, draw, mainWindow)
+	})
+
+	chessboardComponent.SetOnMoveDoneHandler(func(fan string) {
+		historyComponent.AddMove(history.GameMove{Fan: fan})
 	})
 
 	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {

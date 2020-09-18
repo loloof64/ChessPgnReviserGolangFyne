@@ -74,7 +74,7 @@ func newHistoryLayout(width int) HistoryLayout {
 
 // GameMove defines a move of the History widget.
 type GameMove struct {
-	San string
+	Fan string
 }
 
 // History is a widget that shows the played moves, and is intended to
@@ -138,7 +138,7 @@ func (history *History) CreateRenderer() fyne.WidgetRenderer {
 // AddMove adds a move to the History widget.
 func (history *History) AddMove(move GameMove) {
 	history.moves = append(history.moves, move)
-	moveComponent := widget.NewButton(move.San, func() {})
+	moveComponent := widget.NewButton(move.Fan, func() {})
 	history.container.AddObject(moveComponent)
 	history.container.Resize(history.preferredSize)
 	history.Refresh()
