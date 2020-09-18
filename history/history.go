@@ -7,8 +7,6 @@ import (
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
-
-	"fmt"
 )
 
 // HistoryLayout defines the layout of the History widget.
@@ -59,14 +57,13 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 
 		weMustGoToNextLine := w+size.Width > containerSize.Width
 		if weMustGoToNextLine {
-			fmt.Println("new line", "pos", pos)
 			pos = pos.Add(fyne.NewPos(0, currMaxH+l.gap.Height))
 			pos.X = 0
 			o.Move(pos)
-			w = 0
+			pos = pos.Add(fyne.NewPos(size.Width+l.gap.Width, 0))
+			w = size.Width + l.gap.Width
 			h += currMaxH + l.gap.Height
 		} else {
-			fmt.Println("going on", "pos", pos)
 			o.Move(pos)
 			pos = pos.Add(fyne.NewPos(size.Width+l.gap.Width, 0))
 			w += size.Width + l.gap.Width
