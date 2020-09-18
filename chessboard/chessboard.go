@@ -44,8 +44,8 @@ const (
 )
 
 type cell struct {
-	file int
-	rank int
+	file int8
+	rank int8
 }
 
 type lastMove struct {
@@ -236,8 +236,8 @@ func (board *ChessBoard) DragEnd() {
 		return
 	}
 
-	rank1 := 0
-	rank8 := 7
+	rank1 := int8(0)
+	rank8 := int8(7)
 
 	isPromotionMove :=
 		board.movedPiece != nil &&
@@ -246,18 +246,15 @@ func (board *ChessBoard) DragEnd() {
 
 	if isPromotionMove {
 
-		fakeMoveTest := board.getMoveString()
-		fakeMoveTest = fmt.Sprintf("%s%s", fakeMoveTest, "q")
-
-		currentFen, _ := chess.FEN(board.game.FEN())
-		gameClone := chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), currentFen)
-		fakeMoveToBeDone, moveErr := chess.LongAlgebraicNotation{}.Decode(gameClone.Position(), fakeMoveTest)
-
-		if moveErr != nil {
+		fakeMoveToBeDone := board.getMatchingMove(chess.Queen)
+		if fakeMoveToBeDone == nil {
 			board.resetDragAndDrop()
 			board.Refresh()
 			return
 		}
+
+		currentFen, _ := chess.FEN(board.game.FEN())
+		gameClone := chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), currentFen)
 
 		err := gameClone.Move(fakeMoveToBeDone)
 
@@ -272,14 +269,14 @@ func (board *ChessBoard) DragEnd() {
 		return
 	}
 
-	moveStr := board.getMoveString()
-	moveToBeDone, moveErr := chess.LongAlgebraicNotation{}.Decode(board.game.Position(), moveStr)
-	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
-
-	if moveErr != nil {
+	moveToBeDone := board.getMatchingMove(chess.NoPieceType)
+	if moveToBeDone == nil {
 		board.resetDragAndDrop()
 		board.Refresh()
+		return
 	}
+
+	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
 
 	err := board.game.Move(moveToBeDone)
 	if err == nil {
@@ -341,8 +338,8 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 	position := event.Position
 	// This is really needed to be coded as is !
 	// First file and rank, then bounds test, then adjust values with the board orientation
-	file := int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
-	rank := int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+	file := int8(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
+	rank := int8(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
 
 	inBounds := file >= 0 && file <= 7 && rank >= 0 && rank <= 7
 	if !inBounds {
@@ -392,13 +389,13 @@ func (board *ChessBoard) updateDragAndDrop(event *fyne.DragEvent) {
 	halfCellsLength := int(float64(cellsLength) / 2)
 
 	position := event.Position
-	var file, rank int
+	var file, rank int8
 	if board.blackSide == BlackAtTop {
-		file = int(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
-		rank = 7 - int(math.Floor(float64(position.Y-halfCellsLength)/float64(cellsLength)))
+		file = int8(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
+		rank = int8(7 - int8(math.Floor(float64(position.Y-halfCellsLength)/float64(cellsLength))))
 	} else {
-		file = 7 - int(math.Floor(float64(position.X-halfCellsLength)/float64(cellsLength)))
-		rank = int(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+		file = int8(7 - int8(math.Floor(float64(position.X-halfCellsLength)/float64(cellsLength))))
+		rank = int8(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
 	}
 
 	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
@@ -412,16 +409,20 @@ func (board *ChessBoard) resetDragAndDrop() {
 	board.movedPiece.startCell = cell{file: -1, rank: -1}
 }
 
-func (board *ChessBoard) getMoveString() string {
-	asciiLowerA := 97
-	asciiOne := 49
+func (board *ChessBoard) getMatchingMove(promotionPiece chess.PieceType) *chess.Move {
+	possibleMoves := board.game.ValidMoves()
 
-	return fmt.Sprintf("%c%c%c%c",
-		asciiLowerA+board.movedPiece.startCell.file,
-		asciiOne+board.movedPiece.startCell.rank,
-		asciiLowerA+board.movedPiece.endCell.file,
-		asciiOne+board.movedPiece.endCell.rank,
-	)
+	for _, currentMove := range possibleMoves {
+		if int8(currentMove.S1().File()) == board.movedPiece.startCell.file &&
+			int8(currentMove.S1().Rank()) == board.movedPiece.startCell.rank &&
+			int8(currentMove.S2().File()) == board.movedPiece.endCell.file &&
+			int8(currentMove.S2().Rank()) == board.movedPiece.endCell.rank &&
+			currentMove.Promo() == promotionPiece {
+			return currentMove
+		}
+	}
+
+	return nil
 }
 
 func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image) {
@@ -517,24 +518,9 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 		return
 	}
 
-	var promotionFen string
-	switch pieceType {
-	case chess.Queen:
-		promotionFen = "q"
-	case chess.Rook:
-		promotionFen = "r"
-	case chess.Bishop:
-		promotionFen = "b"
-	case chess.Knight:
-		promotionFen = "n"
-	}
+	moveToBeDone := board.getMatchingMove(pieceType)
 
-	moveStr := board.getMoveString()
-	moveStr = fmt.Sprintf("%s%s", moveStr, promotionFen)
-
-	moveToBeDone, moveErr := chess.LongAlgebraicNotation{}.Decode(board.game.Position(), moveStr)
-
-	if moveErr != nil {
+	if moveToBeDone == nil {
 		board.pendingPromotion = false
 		board.resetDragAndDrop()
 		board.Refresh()
