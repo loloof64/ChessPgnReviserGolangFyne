@@ -7,6 +7,8 @@ import (
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
+
+	"fmt"
 )
 
 // HistoryLayout defines the layout of the History widget.
@@ -21,14 +23,19 @@ func (l HistoryLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 	for _, obj := range objects {
 		childSize := obj.MinSize()
 
-		if w+childSize.Width <= l.width {
+		wontlOverflowCurrentLine := w+childSize.Width <= l.width
+
+		if wontlOverflowCurrentLine {
 			w += childSize.Width + l.gap.Width
 		} else {
 			h += currMaxH + l.gap.Height
 			w = childSize.Width
 			currMaxH = 0
 		}
-		if childSize.Height > currMaxH {
+
+		mustUpdateLineMaxHeight := childSize.Height > currMaxH
+
+		if mustUpdateLineMaxHeight {
 			currMaxH = childSize.Height
 		}
 	}
@@ -41,30 +48,29 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 	pos := fyne.NewPos(0, 0)
 	w, h, currMaxH := 0, 0, 0
 
-	for i, o := range objects {
+	for _, o := range objects {
 		size := o.MinSize()
 		o.Resize(size)
-		o.Move(pos)
 
-		if size.Height > currMaxH {
+		weMustUpdateCurrentLineMaxHeight := size.Height > currMaxH
+		if weMustUpdateCurrentLineMaxHeight {
 			currMaxH = size.Height
 		}
-		if w+size.Width > containerSize.Width {
-			pos = fyne.NewPos(0, h+currMaxH+l.gap.Height)
-			// We must commit this position modification
-			// to the current element.
+
+		weMustGoToNextLine := w+size.Width > containerSize.Width
+		if weMustGoToNextLine {
+			fmt.Println("new line", "pos", pos)
+			pos = pos.Add(fyne.NewPos(0, currMaxH+l.gap.Height))
+			pos.X = 0
 			o.Move(pos)
-			h += currMaxH + l.gap.Height
-			currMaxH = 0
 			w = 0
-		} else if i > 0 {
-			// We must commit this position modification
-			// to the current element.
-			// Except for the first element, which is well placed at (0,0).
-			pos = pos.Add(fyne.NewPos(size.Width+l.gap.Width, 0))
+			h += currMaxH + l.gap.Height
+		} else {
+			fmt.Println("going on", "pos", pos)
 			o.Move(pos)
+			pos = pos.Add(fyne.NewPos(size.Width+l.gap.Width, 0))
+			w += size.Width + l.gap.Width
 		}
-		w += size.Width + l.gap.Width
 	}
 }
 
