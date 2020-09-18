@@ -285,7 +285,7 @@ func (renderer Renderer) updateCellsForDragAndDrop() {
 
 	for rank := 0; rank < 8; rank++ {
 		for file := 0; file < 8; file++ {
-			isWhiteCell := (file+rank)%2 == 0
+			isWhiteCell := (file+rank)%2 > 0
 			if isWhiteCell {
 				renderer.cells[rank][file].FillColor = whiteCellColor
 			} else {

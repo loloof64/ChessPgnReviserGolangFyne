@@ -425,19 +425,20 @@ func (board *ChessBoard) getMatchingMove(promotionPiece chess.PieceType) *chess.
 	return nil
 }
 
-func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image) {
+func (board ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image) {
 	whiteCellColor := color.RGBA{255, 206, 158, 0xff}
-	blackCellColor := color.RGBA{209, 139, 71, 0xff}
+	//blackCellColor := color.RGBA{209, 139, 71, 0xff}
 
 	for line := 0; line < 8; line++ {
 		for col := 0; col < 8; col++ {
-			isWhiteCell := (line+col)%2 != 0
+			isWhiteCell := (line+col)%2 == 0
 			var cellColor color.Color
 			if isWhiteCell {
 				cellColor = whiteCellColor
 			} else {
-				cellColor = blackCellColor
+				cellColor = whiteCellColor
 			}
+
 			cellRef := canvas.NewRectangle(cellColor)
 			cells[line][col] = cellRef
 
@@ -454,7 +455,7 @@ func (board *ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pie
 	}
 }
 
-func (board *ChessBoard) buildFilesCoordinates(filesCoords *[2][8]*canvas.Text) {
+func (board ChessBoard) buildFilesCoordinates(filesCoords *[2][8]*canvas.Text) {
 	coordsColor := color.RGBA{255, 199, 0, 0xff}
 	asciiLowerA := 97
 
@@ -468,7 +469,7 @@ func (board *ChessBoard) buildFilesCoordinates(filesCoords *[2][8]*canvas.Text) 
 	}
 }
 
-func (board *ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text) {
+func (board ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text) {
 	coordsColor := color.RGBA{255, 199, 0, 0xff}
 	asciiOne := 49
 
@@ -483,7 +484,7 @@ func (board *ChessBoard) buildRanksCoordinates(ranksCoords *[2][8]*canvas.Text) 
 
 }
 
-func (board *ChessBoard) buildPlayerTurn() *canvas.Circle {
+func (board ChessBoard) buildPlayerTurn() *canvas.Circle {
 	var playerTurnColor color.Color
 	gameTurn := board.game.Position().Turn()
 	if gameTurn == chess.White {
