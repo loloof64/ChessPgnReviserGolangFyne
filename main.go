@@ -46,6 +46,7 @@ func main() {
 	historyZone := widget.NewVScrollContainer(historyComponent)
 
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
+		historyComponent.Clear()
 		chessboardComponent.NewGame()
 	})
 
