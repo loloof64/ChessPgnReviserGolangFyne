@@ -5,6 +5,7 @@ import (
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
+	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
 
 	"github.com/cloudfoundry-attic/jibber_jabber"
@@ -36,7 +37,12 @@ func main() {
 	}
 
 	app := app.New()
-	app.Settings().SetTheme(&CustomLightTheme{})
+	currentTheme := app.Settings().Theme()
+	if currentTheme == theme.LightTheme() {
+		app.Settings().SetTheme(&CustomLightTheme{})
+	} else {
+		app.Settings().SetTheme(&CustomDarkTheme{})
+	}
 	app.SetIcon(resourceChessPng)
 
 	title := ini.String("general.title")
