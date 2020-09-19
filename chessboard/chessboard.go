@@ -286,7 +286,9 @@ func (board *ChessBoard) DragEnd() {
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
-		board.onMoveDone(moveFan)
+		if board.onMoveDone != nil {
+			board.onMoveDone(moveFan)
+		}
 	}
 	board.resetDragAndDrop()
 	board.updatePieces()
@@ -564,7 +566,9 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
-		board.onMoveDone(moveFan)
+		if board.onMoveDone != nil {
+			board.onMoveDone(moveFan)
+		}
 	}
 
 	board.pendingPromotion = false
