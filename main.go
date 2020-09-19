@@ -6,6 +6,7 @@ import (
 	"fyne.io/fyne/dialog"
 	"fyne.io/fyne/layout"
 	"fyne.io/fyne/widget"
+
 	"github.com/cloudfoundry-attic/jibber_jabber"
 	"github.com/gookit/ini/v2"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
@@ -35,6 +36,7 @@ func main() {
 	}
 
 	app := app.New()
+	app.Settings().SetTheme(&CustomLightTheme{})
 	app.SetIcon(resourceChessPng)
 
 	title := ini.String("general.title")

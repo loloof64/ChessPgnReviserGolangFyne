@@ -3,3 +3,4 @@ fyne bundle reverse.svg > bundled.go
 fyne bundle -append start.svg >> bundled.go
 fyne bundle -append agreement.svg >> bundled.go
 fyne bundle -append chess.png >> bundled.go
+fyne bundle -append FreeSerif.ttf >> bundled.go

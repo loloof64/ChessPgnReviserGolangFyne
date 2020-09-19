@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image/color"
 	"math"
+	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -277,6 +278,7 @@ func (board *ChessBoard) DragEnd() {
 	}
 
 	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
+	moveFan := convertSanToFan(moveSan, board.game.Position().Turn() == chess.White)
 
 	err := board.game.Move(moveToBeDone)
 	if err == nil {
@@ -284,13 +286,39 @@ func (board *ChessBoard) DragEnd() {
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
-		board.onMoveDone(moveSan)
+		board.onMoveDone(moveFan)
 	}
 	board.resetDragAndDrop()
 	board.updatePieces()
 	board.Refresh()
 
 	board.handleGameEndedStatus()
+}
+
+func convertSanToFan(san string, whiteMove bool) string {
+	fan := san
+	var kingChange, queenChange, rookChange, bishopChange, knightChange string
+	if whiteMove {
+		kingChange = "\u2654"
+		queenChange = "\u2655"
+		rookChange = "\u2656"
+		bishopChange = "\u2657"
+		knightChange = "\u2658"
+	} else {
+		kingChange = "\u265A"
+		queenChange = "\u265B"
+		rookChange = "\u265C"
+		bishopChange = "\u265D"
+		knightChange = "\u265E"
+	}
+
+	fan = strings.ReplaceAll(fan, "K", kingChange)
+	fan = strings.ReplaceAll(fan, "Q", queenChange)
+	fan = strings.ReplaceAll(fan, "R", rookChange)
+	fan = strings.ReplaceAll(fan, "B", bishopChange)
+	fan = strings.ReplaceAll(fan, "N", knightChange)
+
+	return fan
 }
 
 // ClaimDraw emits a draw claim (for 3-folds repetitions, or for 50-moves rule).
@@ -528,6 +556,7 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 	}
 
 	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
+	moveFan := convertSanToFan(moveSan, board.game.Position().Turn() == chess.White)
 
 	err := board.game.Move(moveToBeDone)
 	if err == nil {
@@ -535,7 +564,7 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
-		board.onMoveDone(moveSan)
+		board.onMoveDone(moveFan)
 	}
 
 	board.pendingPromotion = false
