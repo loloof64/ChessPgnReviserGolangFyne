@@ -295,6 +295,7 @@ func (board *ChessBoard) DragEnd() {
 
 	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
 	moveFan := convertSanToFan(moveSan, board.game.Position().Turn() == chess.White)
+	wasBlackToMove := board.game.Position().Turn() == chess.Black
 
 	err := board.game.Move(moveToBeDone)
 	positionAfterMove := board.game.Position().String()
@@ -309,6 +310,7 @@ func (board *ChessBoard) DragEnd() {
 				Fen:                positionAfterMove,
 				LastMoveOriginCell: board.movedPiece.startCell,
 				LastMoveTargetCell: board.movedPiece.endCell,
+				IsBlackMove:        wasBlackToMove,
 			}
 			board.onMoveDone(moveData)
 		}
@@ -590,6 +592,7 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 
 	moveSan := chess.AlgebraicNotation{}.Encode(board.game.Position(), moveToBeDone)
 	moveFan := convertSanToFan(moveSan, board.game.Position().Turn() == chess.White)
+	wasBlackToMove := board.game.Position().Turn() == chess.Black
 
 	err := board.game.Move(moveToBeDone)
 	positionAfterMove := board.game.Position().String()
@@ -605,6 +608,7 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 				Fen:                positionAfterMove,
 				LastMoveOriginCell: board.movedPiece.startCell,
 				LastMoveTargetCell: board.movedPiece.endCell,
+				IsBlackMove:        wasBlackToMove,
 			}
 			board.onMoveDone(moveData)
 		}

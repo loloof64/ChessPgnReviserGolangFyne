@@ -1,6 +1,7 @@
 package history
 
 import (
+	"fmt"
 	"image/color"
 
 	"fyne.io/fyne"
@@ -82,8 +83,8 @@ func newHistoryLayout(width int) HistoryLayout {
 type History struct {
 	widget.BaseWidget
 
-	preferredSize fyne.Size
-	moves         []commonTypes.GameMove
+	preferredSize     fyne.Size
+	currentMoveNumber int
 
 	container         *fyne.Container
 	onPositionRequest func(moveData commonTypes.GameMove)
@@ -143,7 +144,6 @@ func (history *History) CreateRenderer() fyne.WidgetRenderer {
 
 // AddMove adds a move to the History widget.
 func (history *History) AddMove(moveData commonTypes.GameMove) {
-	history.moves = append(history.moves, moveData)
 	moveComponent := widget.NewButton(moveData.Fan, func() {
 		if history.onPositionRequest != nil {
 			history.onPositionRequest(moveData)
@@ -151,12 +151,21 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 	})
 	history.container.AddObject(moveComponent)
 	history.container.Resize(history.preferredSize)
+	if moveData.IsBlackMove {
+		history.currentMoveNumber += 1
+		numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
+		history.container.AddObject(numberComponent)
+		history.container.Resize(history.preferredSize)
+	}
 	history.Refresh()
 }
 
 // Clear clears all moves from the History widget.
-func (history *History) Clear() {
-	history.moves = nil
+func (history *History) Clear(startMoveNumber int) {
 	history.container.Objects = nil
+	history.currentMoveNumber = startMoveNumber
+	numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
+	history.container.AddObject(numberComponent)
+	history.container.Resize(history.preferredSize)
 	history.Refresh()
 }
