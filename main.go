@@ -76,11 +76,17 @@ func main() {
 		dialogTitle := ini.String("stopGameRequest.dialogTitle")
 		dialogMessage := ini.String("stopGameRequest.dialogMessage")
 
-		dialog.ShowConfirm(dialogTitle, dialogMessage, func(confirmed bool) {
+		confirmButtonText := ini.String("general.okButton")
+		cancelButtonText := ini.String("general.cancelButton")
+
+		dialogComponent := widget.NewLabel(dialogMessage)
+
+		confirmDialog := dialog.NewCustomConfirm(dialogTitle, confirmButtonText, cancelButtonText, dialogComponent, func(confirmed bool) {
 			if confirmed {
 				chessboardComponent.StopGame()
 			}
 		}, mainWindow)
+		confirmDialog.Show()
 	})
 
 	gameFinished := ini.String("general.gameFinished")
