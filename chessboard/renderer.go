@@ -22,7 +22,7 @@ type Renderer struct {
 // Layout layouts the board elements.
 func (renderer Renderer) Layout(size fyne.Size) {
 	renderer.layoutCells(size)
-	renderer.layoutLastMoveArrowIfNeeded(size)
+	renderer.boardWidget.LayoutLastMoveArrowIfNeeded(size)
 	renderer.layoutPieces(size)
 	renderer.layoutMovedPieceIfAny(size)
 	renderer.layoutFilesCoordinates(size)
@@ -160,30 +160,6 @@ func (renderer Renderer) layoutPieces(size fyne.Size) {
 	}
 }
 
-func (renderer Renderer) layoutLastMoveArrowIfNeeded(size fyne.Size) {
-	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
-
-	if renderer.boardWidget.lastMove != nil {
-		var xa, ya, xb, yb int
-		if renderer.boardWidget.blackSide == BlackAtTop {
-			xa = cellsLength + int(renderer.boardWidget.lastMove.originCell.File)*cellsLength
-			ya = cellsLength + (7-int(renderer.boardWidget.lastMove.originCell.Rank))*cellsLength
-			xb = cellsLength + int(renderer.boardWidget.lastMove.targetCell.File)*cellsLength
-			yb = cellsLength + (7-int(renderer.boardWidget.lastMove.targetCell.Rank))*cellsLength
-		} else {
-			xa = cellsLength + (7-int(renderer.boardWidget.lastMove.originCell.File))*cellsLength
-			ya = cellsLength + int(renderer.boardWidget.lastMove.originCell.Rank)*cellsLength
-			xb = cellsLength + (7-int(renderer.boardWidget.lastMove.targetCell.File))*cellsLength
-			yb = cellsLength + int(renderer.boardWidget.lastMove.targetCell.Rank)*cellsLength
-		}
-		arrowWidth := int(float64(cellsLength) * 0.2)
-		arrowLengthPercentage := 0.25
-		lineThickness := float32(cellsLength) * 0.1
-		renderer.makeArrow(xa, ya, xb, yb, arrowWidth, arrowLengthPercentage, lineThickness)
-	}
-}
-
 func (renderer Renderer) layoutFilesCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
@@ -316,44 +292,4 @@ func (renderer Renderer) updateCellsForDragAndDrop() {
 
 		}
 	}
-}
-
-// based on http://xymaths.free.fr/Informatique-Programmation/javascript/canvas-dessin-fleche.php
-func (renderer Renderer) makeArrow(xa int, ya int, xb int, yb int,
-	arrowWidth int, arrowLengthPercentage float64, lineThickness float32) {
-
-	arrowColor := color.RGBA{100, 90, 200, 0xff}
-
-	deltaX := float64(xb - xa)
-	deltaY := float64(yb - ya)
-	abLength := math.Sqrt(deltaX*deltaX + deltaY*deltaY)
-	arrowLength := int(arrowLengthPercentage * abLength)
-
-	xc := xb + int(float64(arrowLength*(xa-xb))/abLength)
-	yc := yb + int(float64(arrowLength*(ya-yb))/abLength)
-
-	xd := xc + int(float64(arrowWidth*(ya-yb))/abLength)
-	yd := yc + int(float64(arrowWidth*(xb-xa))/abLength)
-
-	xe := xc - int(float64(arrowWidth*(ya-yb))/abLength)
-	ye := yc - int(float64(arrowWidth*(xb-xa))/abLength)
-
-	baseLine := *canvas.NewLine(arrowColor)
-	baseLine.StrokeWidth = lineThickness
-	baseLine.Position1 = fyne.NewPos(xa, ya)
-	baseLine.Position2 = fyne.NewPos(xb, yb)
-
-	arrowLine1 := *canvas.NewLine(arrowColor)
-	arrowLine1.StrokeWidth = lineThickness
-	arrowLine1.Position1 = fyne.NewPos(xd, yd)
-	arrowLine1.Position2 = fyne.NewPos(xb, yb)
-
-	arrowLine2 := *canvas.NewLine(arrowColor)
-	arrowLine2.StrokeWidth = lineThickness
-	arrowLine2.Position1 = fyne.NewPos(xb, yb)
-	arrowLine2.Position2 = fyne.NewPos(xe, ye)
-
-	renderer.boardWidget.lastMove.baseline = baseLine
-	renderer.boardWidget.lastMove.leftArrowLine = arrowLine1
-	renderer.boardWidget.lastMove.rightArrowLine = arrowLine2
 }

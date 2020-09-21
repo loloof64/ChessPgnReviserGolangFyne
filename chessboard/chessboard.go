@@ -120,6 +120,7 @@ func (board *ChessBoard) RequestHistoryPosition(position commonTypes.GameMove) {
 		board.positionForHistory = position.Fen
 
 		board.updatePieces()
+		board.updateLastMoveArrow(position)
 		board.Refresh()
 	}
 }
@@ -142,6 +143,12 @@ func (board *ChessBoard) SetOnDrawHandler(handler func()) {
 // SetOnMoveDoneHandler sets the handler for moves done on the chess board widget.
 func (board *ChessBoard) SetOnMoveDoneHandler(handler func(moveData commonTypes.GameMove)) {
 	board.onMoveDone = handler
+}
+
+func (board *ChessBoard) updateLastMoveArrow(position commonTypes.GameMove) {
+	board.lastMove.originCell = position.LastMoveOriginCell
+	board.lastMove.targetCell = position.LastMoveTargetCell
+	board.LayoutLastMoveArrowIfNeeded(board.Size())
 }
 
 func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
@@ -686,4 +693,68 @@ func (board *ChessBoard) launchPromotionDialog() {
 		board.Refresh()
 	})
 	board.promotionDialog.Show()
+}
+
+func (board *ChessBoard) LayoutLastMoveArrowIfNeeded(size fyne.Size) {
+	minSize := math.Min(float64(size.Width), float64(size.Height))
+	cellsLength := int(minSize / 9.0)
+
+	if board.lastMove != nil {
+		var xa, ya, xb, yb int
+		if board.blackSide == BlackAtTop {
+			xa = cellsLength + int(board.lastMove.originCell.File)*cellsLength
+			ya = cellsLength + (7-int(board.lastMove.originCell.Rank))*cellsLength
+			xb = cellsLength + int(board.lastMove.targetCell.File)*cellsLength
+			yb = cellsLength + (7-int(board.lastMove.targetCell.Rank))*cellsLength
+		} else {
+			xa = cellsLength + (7-int(board.lastMove.originCell.File))*cellsLength
+			ya = cellsLength + int(board.lastMove.originCell.Rank)*cellsLength
+			xb = cellsLength + (7-int(board.lastMove.targetCell.File))*cellsLength
+			yb = cellsLength + int(board.lastMove.targetCell.Rank)*cellsLength
+		}
+		arrowWidth := int(float64(cellsLength) * 0.2)
+		arrowLengthPercentage := 0.25
+		lineThickness := float32(cellsLength) * 0.1
+		board.makeArrow(xa, ya, xb, yb, arrowWidth, arrowLengthPercentage, lineThickness)
+	}
+}
+
+// based on http://xymaths.free.fr/Informatique-Programmation/javascript/canvas-dessin-fleche.php
+func (board *ChessBoard) makeArrow(xa int, ya int, xb int, yb int,
+	arrowWidth int, arrowLengthPercentage float64, lineThickness float32) {
+
+	arrowColor := color.RGBA{100, 90, 200, 0xff}
+
+	deltaX := float64(xb - xa)
+	deltaY := float64(yb - ya)
+	abLength := math.Sqrt(deltaX*deltaX + deltaY*deltaY)
+	arrowLength := int(arrowLengthPercentage * abLength)
+
+	xc := xb + int(float64(arrowLength*(xa-xb))/abLength)
+	yc := yb + int(float64(arrowLength*(ya-yb))/abLength)
+
+	xd := xc + int(float64(arrowWidth*(ya-yb))/abLength)
+	yd := yc + int(float64(arrowWidth*(xb-xa))/abLength)
+
+	xe := xc - int(float64(arrowWidth*(ya-yb))/abLength)
+	ye := yc - int(float64(arrowWidth*(xb-xa))/abLength)
+
+	baseLine := *canvas.NewLine(arrowColor)
+	baseLine.StrokeWidth = lineThickness
+	baseLine.Position1 = fyne.NewPos(xa, ya)
+	baseLine.Position2 = fyne.NewPos(xb, yb)
+
+	arrowLine1 := *canvas.NewLine(arrowColor)
+	arrowLine1.StrokeWidth = lineThickness
+	arrowLine1.Position1 = fyne.NewPos(xd, yd)
+	arrowLine1.Position2 = fyne.NewPos(xb, yb)
+
+	arrowLine2 := *canvas.NewLine(arrowColor)
+	arrowLine2.StrokeWidth = lineThickness
+	arrowLine2.Position1 = fyne.NewPos(xb, yb)
+	arrowLine2.Position2 = fyne.NewPos(xe, ye)
+
+	board.lastMove.baseline = baseLine
+	board.lastMove.leftArrowLine = arrowLine1
+	board.lastMove.rightArrowLine = arrowLine2
 }
