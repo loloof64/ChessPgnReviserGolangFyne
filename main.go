@@ -68,6 +68,21 @@ func main() {
 		chessboardComponent.SetOrientation(boardOrientation)
 	})
 
+	stopGameItem := widget.NewToolbarAction(resourceStopSvg, func() {
+		if !chessboardComponent.GameInProgress() {
+			return
+		}
+
+		dialogTitle := ini.String("stopGameRequest.dialogTitle")
+		dialogMessage := ini.String("stopGameRequest.dialogMessage")
+
+		dialog.ShowConfirm(dialogTitle, dialogMessage, func(confirmed bool) {
+			if confirmed {
+				chessboardComponent.StopGame()
+			}
+		}, mainWindow)
+	})
+
 	gameFinished := ini.String("general.gameFinished")
 
 	whiteWon := ini.String("gameResult.whiteWon")
@@ -109,7 +124,8 @@ func main() {
 		}
 	})
 
-	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem)
+	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem,
+		stopGameItem)
 
 	gameZone := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), chessboardComponent, historyZone)
 

@@ -114,6 +114,11 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	}
 }
 
+// GameInProgress says if the game is in progress in the chess board widget.
+func (board *ChessBoard) GameInProgress() bool {
+	return board.gameInProgress
+}
+
 // RequestHistoryPosition tries to set the requested position, if not in progress.
 func (board *ChessBoard) RequestHistoryPosition(position commonTypes.GameMove) {
 	if !board.gameInProgress {
@@ -143,6 +148,11 @@ func (board *ChessBoard) SetOnDrawHandler(handler func()) {
 // SetOnMoveDoneHandler sets the handler for moves done on the chess board widget.
 func (board *ChessBoard) SetOnMoveDoneHandler(handler func(moveData commonTypes.GameMove)) {
 	board.onMoveDone = handler
+}
+
+// StopGame stops the current game.
+func (board *ChessBoard) StopGame() {
+	board.gameInProgress = false
 }
 
 func (board *ChessBoard) updateLastMoveArrow(position commonTypes.GameMove) {
