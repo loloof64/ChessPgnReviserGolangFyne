@@ -11,6 +11,7 @@ import (
 	"github.com/cloudfoundry-attic/jibber_jabber"
 	"github.com/gookit/ini/v2"
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
+	"github.com/loloof64/chess-pgn-reviser-fyne/commonTypes"
 	"github.com/loloof64/chess-pgn-reviser-fyne/history"
 )
 
@@ -87,8 +88,12 @@ func main() {
 		dialog.ShowInformation(gameFinished, draw, mainWindow)
 	})
 
-	chessboardComponent.SetOnMoveDoneHandler(func(fan string) {
-		historyComponent.AddMove(history.GameMove{Fan: fan})
+	chessboardComponent.SetOnMoveDoneHandler(func(moveData commonTypes.GameMove) {
+		historyComponent.AddMove(moveData)
+	})
+
+	historyComponent.SetOnPositionRequestHandler(func(moveData commonTypes.GameMove) {
+		chessboardComponent.RequestHistoryPosition(moveData)
 	})
 
 	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {

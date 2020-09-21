@@ -7,6 +7,8 @@ import (
 	"fyne.io/fyne/canvas"
 	"fyne.io/fyne/theme"
 	"fyne.io/fyne/widget"
+
+	"github.com/loloof64/chess-pgn-reviser-fyne/commonTypes"
 )
 
 // HistoryLayout defines the layout of the History widget.
@@ -75,20 +77,16 @@ func newHistoryLayout(width int) HistoryLayout {
 	return HistoryLayout{width: width, gap: fyne.NewSize(5, 8)}
 }
 
-// GameMove defines a move of the History widget.
-type GameMove struct {
-	Fan string
-}
-
 // History is a widget that shows the played moves, and is intended to
 // load selected position on the board if game is not in progress.
 type History struct {
 	widget.BaseWidget
 
 	preferredSize fyne.Size
-	moves         []GameMove
+	moves         []commonTypes.GameMove
 
-	container *fyne.Container
+	container         *fyne.Container
+	onPositionRequest func(moveData commonTypes.GameMove)
 }
 
 type historyRenderer struct {
@@ -132,6 +130,11 @@ func NewHistory(preferredSize fyne.Size) *History {
 	return history
 }
 
+// SetOnPositionRequestHandler
+func (history *History) SetOnPositionRequestHandler(handler func(moveData commonTypes.GameMove)) {
+	history.onPositionRequest = handler
+}
+
 // CreateRenderer creates the Renderer for History widget.
 func (history *History) CreateRenderer() fyne.WidgetRenderer {
 	renderer := &historyRenderer{history: history}
@@ -139,10 +142,12 @@ func (history *History) CreateRenderer() fyne.WidgetRenderer {
 }
 
 // AddMove adds a move to the History widget.
-func (history *History) AddMove(move GameMove) {
-	history.moves = append(history.moves, move)
-	moveComponent := widget.NewButton(move.Fan, func() {
-
+func (history *History) AddMove(moveData commonTypes.GameMove) {
+	history.moves = append(history.moves, moveData)
+	moveComponent := widget.NewButton(moveData.Fan, func() {
+		if history.onPositionRequest != nil {
+			history.onPositionRequest(moveData)
+		}
 	})
 	history.container.AddObject(moveComponent)
 	history.container.Resize(history.preferredSize)

@@ -71,8 +71,8 @@ func (renderer Renderer) Objects() []fyne.CanvasObject {
 			}
 
 			isDraggedPiece := renderer.boardWidget.dragndropInProgress &&
-				renderer.boardWidget.movedPiece.startCell.file == int8(file) &&
-				renderer.boardWidget.movedPiece.startCell.rank == int8(rank)
+				renderer.boardWidget.movedPiece.startCell.File == int8(file) &&
+				renderer.boardWidget.movedPiece.startCell.Rank == int8(rank)
 
 			if isDraggedPiece {
 				continue
@@ -167,15 +167,15 @@ func (renderer Renderer) layoutLastMoveArrowIfNeeded(size fyne.Size) {
 	if renderer.boardWidget.lastMove != nil {
 		var xa, ya, xb, yb int
 		if renderer.boardWidget.blackSide == BlackAtTop {
-			xa = cellsLength + int(renderer.boardWidget.lastMove.originCell.file)*cellsLength
-			ya = cellsLength + (7-int(renderer.boardWidget.lastMove.originCell.rank))*cellsLength
-			xb = cellsLength + int(renderer.boardWidget.lastMove.targetCell.file)*cellsLength
-			yb = cellsLength + (7-int(renderer.boardWidget.lastMove.targetCell.rank))*cellsLength
+			xa = cellsLength + int(renderer.boardWidget.lastMove.originCell.File)*cellsLength
+			ya = cellsLength + (7-int(renderer.boardWidget.lastMove.originCell.Rank))*cellsLength
+			xb = cellsLength + int(renderer.boardWidget.lastMove.targetCell.File)*cellsLength
+			yb = cellsLength + (7-int(renderer.boardWidget.lastMove.targetCell.Rank))*cellsLength
 		} else {
-			xa = cellsLength + (7-int(renderer.boardWidget.lastMove.originCell.file))*cellsLength
-			ya = cellsLength + int(renderer.boardWidget.lastMove.originCell.rank)*cellsLength
-			xb = cellsLength + (7-int(renderer.boardWidget.lastMove.targetCell.file))*cellsLength
-			yb = cellsLength + int(renderer.boardWidget.lastMove.targetCell.rank)*cellsLength
+			xa = cellsLength + (7-int(renderer.boardWidget.lastMove.originCell.File))*cellsLength
+			ya = cellsLength + int(renderer.boardWidget.lastMove.originCell.Rank)*cellsLength
+			xb = cellsLength + (7-int(renderer.boardWidget.lastMove.targetCell.File))*cellsLength
+			yb = cellsLength + int(renderer.boardWidget.lastMove.targetCell.Rank)*cellsLength
 		}
 		arrowWidth := int(float64(cellsLength) * 0.2)
 		arrowLengthPercentage := 0.25
@@ -296,20 +296,20 @@ func (renderer Renderer) updateCellsForDragAndDrop() {
 				continue
 			}
 
-			isADragAndDropCrossCell := int8(file) == renderer.boardWidget.movedPiece.endCell.file ||
-				int8(rank) == renderer.boardWidget.movedPiece.endCell.rank
+			isADragAndDropCrossCell := int8(file) == renderer.boardWidget.movedPiece.endCell.File ||
+				int8(rank) == renderer.boardWidget.movedPiece.endCell.Rank
 			if isADragAndDropCrossCell {
 				renderer.cells[rank][file].FillColor = dndCrossCellColor
 			}
 
-			isOriginCell := int8(file) == renderer.boardWidget.movedPiece.startCell.file &&
-				int8(rank) == renderer.boardWidget.movedPiece.startCell.rank
+			isOriginCell := int8(file) == renderer.boardWidget.movedPiece.startCell.File &&
+				int8(rank) == renderer.boardWidget.movedPiece.startCell.Rank
 			if isOriginCell {
 				renderer.cells[rank][file].FillColor = dndOriginCellColor
 			}
 
-			isTargetCell := int8(file) == renderer.boardWidget.movedPiece.endCell.file &&
-				int8(rank) == renderer.boardWidget.movedPiece.endCell.rank
+			isTargetCell := int8(file) == renderer.boardWidget.movedPiece.endCell.File &&
+				int8(rank) == renderer.boardWidget.movedPiece.endCell.Rank
 			if isTargetCell {
 				renderer.cells[rank][file].FillColor = dndTargetCellColor
 			}

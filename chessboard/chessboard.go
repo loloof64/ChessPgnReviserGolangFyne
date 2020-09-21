@@ -14,6 +14,8 @@ import (
 
 	"github.com/gookit/ini/v2"
 	"github.com/notnil/chess"
+
+	"github.com/loloof64/chess-pgn-reviser-fyne/commonTypes"
 )
 
 // BlackSide defines the side of the black side on the board.
@@ -44,14 +46,9 @@ const (
 	Draw
 )
 
-type cell struct {
-	file int8
-	rank int8
-}
-
 type lastMove struct {
-	originCell cell
-	targetCell cell
+	originCell commonTypes.Cell
+	targetCell commonTypes.Cell
 
 	baseline       canvas.Line
 	leftArrowLine  canvas.Line
@@ -62,8 +59,8 @@ type movedPiece struct {
 	location   fyne.Position
 	pieceValue chess.Piece
 	pieceImage fyne.CanvasObject
-	startCell  cell
-	endCell    cell
+	startCell  commonTypes.Cell
+	endCell    commonTypes.Cell
 }
 
 // ChessBoard is a chess board widget.
@@ -85,9 +82,10 @@ type ChessBoard struct {
 	onWhiteWin func()
 	onBlackWin func()
 	onDraw     func()
-	onMoveDone func(fan string)
+	onMoveDone func(moveData commonTypes.GameMove)
 
-	pieces [8][8]*canvas.Image
+	pieces             [8][8]*canvas.Image
+	positionForHistory string
 }
 
 // CreateRenderer creates the board renderer.
@@ -116,6 +114,16 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	}
 }
 
+// RequestHistoryPosition tries to set the requested position, if not in progress.
+func (board *ChessBoard) RequestHistoryPosition(position commonTypes.GameMove) {
+	if !board.gameInProgress {
+		board.positionForHistory = position.Fen
+
+		board.updatePieces()
+		board.Refresh()
+	}
+}
+
 // SetOnWhiteWinHandler sets the handler for white side win.
 func (board *ChessBoard) SetOnWhiteWinHandler(handler func()) {
 	board.onWhiteWin = handler
@@ -132,7 +140,7 @@ func (board *ChessBoard) SetOnDrawHandler(handler func()) {
 }
 
 // SetOnMoveDoneHandler sets the handler for moves done on the chess board widget.
-func (board *ChessBoard) SetOnMoveDoneHandler(handler func(fan string)) {
+func (board *ChessBoard) SetOnMoveDoneHandler(handler func(moveData commonTypes.GameMove)) {
 	board.onMoveDone = handler
 }
 
@@ -193,6 +201,7 @@ func (board *ChessBoard) NewGame() {
 	board.gameInProgress = true
 	board.lastMove = nil
 	board.pendingPromotion = false
+	board.positionForHistory = ""
 
 	board.updatePieces()
 	board.Refresh()
@@ -227,8 +236,8 @@ func (board *ChessBoard) DragEnd() {
 		return
 	}
 
-	file := board.movedPiece.endCell.file
-	rank := board.movedPiece.endCell.rank
+	file := board.movedPiece.endCell.File
+	rank := board.movedPiece.endCell.Rank
 
 	inBounds := file >= 0 && file <= 7 && rank >= 0 && rank <= 7
 	if !inBounds {
@@ -281,13 +290,20 @@ func (board *ChessBoard) DragEnd() {
 	moveFan := convertSanToFan(moveSan, board.game.Position().Turn() == chess.White)
 
 	err := board.game.Move(moveToBeDone)
+	positionAfterMove := board.game.Position().String()
 	if err == nil {
 		board.lastMove = &lastMove{
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
 		if board.onMoveDone != nil {
-			board.onMoveDone(moveFan)
+			moveData := commonTypes.GameMove{
+				Fan:                moveFan,
+				Fen:                positionAfterMove,
+				LastMoveOriginCell: board.movedPiece.startCell,
+				LastMoveTargetCell: board.movedPiece.endCell,
+			}
+			board.onMoveDone(moveData)
 		}
 	}
 	board.resetDragAndDrop()
@@ -403,8 +419,8 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 	movedPiece := movedPiece{}
 	movedPiece.pieceImage = image
 	movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
-	movedPiece.startCell = cell{file: file, rank: rank}
-	movedPiece.endCell = cell{file: file, rank: rank}
+	movedPiece.startCell = commonTypes.Cell{File: file, Rank: rank}
+	movedPiece.endCell = commonTypes.Cell{File: file, Rank: rank}
 	movedPiece.pieceValue = pieceValue
 	board.movedPiece = &movedPiece
 	board.Refresh()
@@ -429,24 +445,24 @@ func (board *ChessBoard) updateDragAndDrop(event *fyne.DragEvent) {
 	}
 
 	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
-	board.movedPiece.endCell = cell{file: file, rank: rank}
+	board.movedPiece.endCell = commonTypes.Cell{File: file, Rank: rank}
 	board.Refresh()
 }
 
 func (board *ChessBoard) resetDragAndDrop() {
 	board.dragndropInProgress = false
 	board.movedPiece.location = fyne.Position{X: -1000, Y: -1000}
-	board.movedPiece.startCell = cell{file: -1, rank: -1}
+	board.movedPiece.startCell = commonTypes.Cell{File: -1, Rank: -1}
 }
 
 func (board *ChessBoard) getMatchingMove(promotionPiece chess.PieceType) *chess.Move {
 	possibleMoves := board.game.ValidMoves()
 
 	for _, currentMove := range possibleMoves {
-		if int8(currentMove.S1().File()) == board.movedPiece.startCell.file &&
-			int8(currentMove.S1().Rank()) == board.movedPiece.startCell.rank &&
-			int8(currentMove.S2().File()) == board.movedPiece.endCell.file &&
-			int8(currentMove.S2().Rank()) == board.movedPiece.endCell.rank &&
+		if int8(currentMove.S1().File()) == board.movedPiece.startCell.File &&
+			int8(currentMove.S1().Rank()) == board.movedPiece.startCell.Rank &&
+			int8(currentMove.S2().File()) == board.movedPiece.endCell.File &&
+			int8(currentMove.S2().Rank()) == board.movedPiece.endCell.Rank &&
 			currentMove.Promo() == promotionPiece {
 			return currentMove
 		}
@@ -457,7 +473,7 @@ func (board *ChessBoard) getMatchingMove(promotionPiece chess.PieceType) *chess.
 
 func (board ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, pieces *[8][8]*canvas.Image) {
 	whiteCellColor := color.RGBA{255, 206, 158, 0xff}
-	//blackCellColor := color.RGBA{209, 139, 71, 0xff}
+	blackCellColor := color.RGBA{209, 139, 71, 0xff}
 
 	for line := 0; line < 8; line++ {
 		for col := 0; col < 8; col++ {
@@ -466,7 +482,7 @@ func (board ChessBoard) buildCellsAndPieces(cells *[8][8]*canvas.Rectangle, piec
 			if isWhiteCell {
 				cellColor = whiteCellColor
 			} else {
-				cellColor = whiteCellColor
+				cellColor = blackCellColor
 			}
 
 			cellRef := canvas.NewRectangle(cellColor)
@@ -527,6 +543,14 @@ func (board ChessBoard) buildPlayerTurn() *canvas.Circle {
 }
 
 func (board *ChessBoard) updatePieces() {
+	if board.positionForHistory != "" {
+		err := board.game.Position().UnmarshalText([]byte(board.positionForHistory))
+		if err != nil {
+			fmt.Println("Error setting up history position.")
+			fmt.Println(err)
+		}
+	}
+
 	for line := 0; line < 8; line++ {
 		for col := 0; col < 8; col++ {
 			board.pieces[line][col] = nil
@@ -561,13 +585,21 @@ func (board *ChessBoard) commitPromotion(pieceType chess.PieceType) {
 	moveFan := convertSanToFan(moveSan, board.game.Position().Turn() == chess.White)
 
 	err := board.game.Move(moveToBeDone)
+	positionAfterMove := board.game.Position().String()
+
 	if err == nil {
 		board.lastMove = &lastMove{
 			originCell: board.movedPiece.startCell,
 			targetCell: board.movedPiece.endCell,
 		}
 		if board.onMoveDone != nil {
-			board.onMoveDone(moveFan)
+			moveData := commonTypes.GameMove{
+				Fan:                moveFan,
+				Fen:                positionAfterMove,
+				LastMoveOriginCell: board.movedPiece.startCell,
+				LastMoveTargetCell: board.movedPiece.endCell,
+			}
+			board.onMoveDone(moveData)
 		}
 	}
 
