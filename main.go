@@ -123,8 +123,8 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 		historyComponent.AddMove(moveData)
 	})
 
-	historyComponent.SetOnPositionRequestHandler(func(moveData commonTypes.GameMove) {
-		chessboardComponent.RequestHistoryPosition(moveData)
+	historyComponent.SetOnPositionRequestHandler(func(moveData commonTypes.GameMove) bool {
+		return chessboardComponent.RequestHistoryPosition(moveData)
 	})
 
 	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {

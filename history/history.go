@@ -87,7 +87,9 @@ type History struct {
 	currentMoveNumber int
 
 	container         *fyne.Container
-	onPositionRequest func(moveData commonTypes.GameMove)
+	onPositionRequest func(moveData commonTypes.GameMove) bool
+
+	currentHighlightedButton *widget.Button
 }
 
 type historyRenderer struct {
@@ -132,7 +134,8 @@ func NewHistory(preferredSize fyne.Size) *History {
 }
 
 // SetOnPositionRequestHandler
-func (history *History) SetOnPositionRequestHandler(handler func(moveData commonTypes.GameMove)) {
+// It should return whether the move could be processed (good data and game not in progress).
+func (history *History) SetOnPositionRequestHandler(handler func(moveData commonTypes.GameMove) bool) {
 	history.onPositionRequest = handler
 }
 
@@ -144,9 +147,14 @@ func (history *History) CreateRenderer() fyne.WidgetRenderer {
 
 // AddMove adds a move to the History widget.
 func (history *History) AddMove(moveData commonTypes.GameMove) {
-	moveComponent := widget.NewButton(moveData.Fan, func() {
+	var moveComponent *widget.Button
+
+	moveComponent = widget.NewButton(moveData.Fan, func() {
 		if history.onPositionRequest != nil {
-			history.onPositionRequest(moveData)
+			if history.onPositionRequest(moveData) {
+				history.currentHighlightedButton = moveComponent
+				history.updateButtonsStyles()
+			}
 		}
 	})
 	history.container.AddObject(moveComponent)
@@ -163,9 +171,24 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 // Clear clears all moves from the History widget.
 func (history *History) Clear(startMoveNumber int) {
 	history.container.Objects = nil
+	history.currentHighlightedButton = nil
 	history.currentMoveNumber = startMoveNumber
 	numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
 	history.container.AddObject(numberComponent)
 	history.container.Resize(history.preferredSize)
+	history.Refresh()
+}
+
+func (history *History) updateButtonsStyles() {
+	for _, currentObject := range history.container.Objects {
+		currentButton, err := currentObject.(*widget.Button)
+		if err {
+			if currentButton == history.currentHighlightedButton {
+				currentButton.Style = widget.PrimaryButton
+			} else {
+				currentButton.Style = widget.DefaultButton
+			}
+		}
+	}
 	history.Refresh()
 }

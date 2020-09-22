@@ -120,14 +120,18 @@ func (board *ChessBoard) GameInProgress() bool {
 }
 
 // RequestHistoryPosition tries to set the requested position, if not in progress.
-func (board *ChessBoard) RequestHistoryPosition(position commonTypes.GameMove) {
+// Returns true if the data could be processed (game not in progress), false otherwise.
+func (board *ChessBoard) RequestHistoryPosition(position commonTypes.GameMove) bool {
 	if !board.gameInProgress {
 		board.positionForHistory = position.Fen
 
 		board.updatePieces()
 		board.updateLastMoveArrow(position)
 		board.Refresh()
+		return true
 	}
+
+	return false
 }
 
 // SetOnWhiteWinHandler sets the handler for white side win.
