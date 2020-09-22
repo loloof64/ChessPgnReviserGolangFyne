@@ -79,10 +79,11 @@ type ChessBoard struct {
 	pendingPromotion    bool
 	promotionDialog     dialog.Dialog
 
-	onWhiteWin func()
-	onBlackWin func()
-	onDraw     func()
-	onMoveDone func(moveData commonTypes.GameMove)
+	onWhiteWin                   func()
+	onBlackWin                   func()
+	onDraw                       func()
+	onMoveDone                   func(moveData commonTypes.GameMove)
+	onRequestLastHistoryPosition func()
 
 	pieces             [8][8]*canvas.Image
 	positionForHistory string
@@ -154,9 +155,18 @@ func (board *ChessBoard) SetOnMoveDoneHandler(handler func(moveData commonTypes.
 	board.onMoveDone = handler
 }
 
+// SetOnRequestLastHistoryPositionHandler sets the handler for requesting last
+// history position loading for the chess board widget.
+func (board *ChessBoard) SetOnRequestLastHistoryPositionHandler(handler func()) {
+	board.onRequestLastHistoryPosition = handler
+}
+
 // StopGame stops the current game.
 func (board *ChessBoard) StopGame() {
 	board.gameInProgress = false
+	if board.onRequestLastHistoryPosition != nil {
+		board.onRequestLastHistoryPosition()
+	}
 }
 
 func (board *ChessBoard) updateLastMoveArrow(position commonTypes.GameMove) {
@@ -642,16 +652,25 @@ func (board *ChessBoard) handleGameEndedStatus() {
 	case chess.WhiteWon:
 		board.gameInProgress = false
 		if board.onWhiteWin != nil {
+			if board.onRequestLastHistoryPosition != nil {
+				board.onRequestLastHistoryPosition()
+			}
 			board.onWhiteWin()
 		}
 	case chess.BlackWon:
 		board.gameInProgress = false
 		if board.onBlackWin != nil {
+			if board.onRequestLastHistoryPosition != nil {
+				board.onRequestLastHistoryPosition()
+			}
 			board.onBlackWin()
 		}
 	case chess.Draw:
 		board.gameInProgress = false
 		if board.onDraw != nil {
+			if board.onRequestLastHistoryPosition != nil {
+				board.onRequestLastHistoryPosition()
+			}
 			board.onDraw()
 		}
 	}

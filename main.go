@@ -123,6 +123,10 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 		historyComponent.AddMove(moveData)
 	})
 
+	chessboardComponent.SetOnRequestLastHistoryPositionHandler(func() {
+		historyComponent.RequestLastItemSelection()
+	})
+
 	historyComponent.SetOnPositionRequestHandler(func(moveData commonTypes.GameMove) bool {
 		return chessboardComponent.RequestHistoryPosition(moveData)
 	})

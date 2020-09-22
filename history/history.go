@@ -90,6 +90,8 @@ type History struct {
 	onPositionRequest func(moveData commonTypes.GameMove) bool
 
 	currentHighlightedButton *widget.Button
+
+	allMovesData []commonTypes.GameMove
 }
 
 type historyRenderer struct {
@@ -159,6 +161,7 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 	})
 	history.container.AddObject(moveComponent)
 	history.container.Resize(history.preferredSize)
+	history.allMovesData = append(history.allMovesData, moveData)
 	if moveData.IsBlackMove {
 		history.currentMoveNumber += 1
 		numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
@@ -172,6 +175,7 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 func (history *History) Clear(startMoveNumber int) {
 	history.container.Objects = nil
 	history.currentHighlightedButton = nil
+	history.allMovesData = nil
 	history.currentMoveNumber = startMoveNumber
 	numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
 	history.container.AddObject(numberComponent)
@@ -179,10 +183,46 @@ func (history *History) Clear(startMoveNumber int) {
 	history.Refresh()
 }
 
+// Tries to select the last element.
+func (history *History) RequestLastItemSelection() {
+	lastButton := history.findLastButton()
+	lastMoveData := history.findLastMoveData()
+
+	if lastButton == nil || lastMoveData == nil {
+		return
+	}
+	if history.onPositionRequest != nil {
+		if history.onPositionRequest(*lastMoveData) {
+			history.currentHighlightedButton = lastButton
+			history.updateButtonsStyles()
+		}
+	}
+}
+
+func (history *History) findLastMoveData() *commonTypes.GameMove {
+	var lastMoveData *commonTypes.GameMove
+	for _, currentMoveData := range history.allMovesData {
+		lastMoveData = &currentMoveData
+	}
+	return lastMoveData
+}
+
+func (history *History) findLastButton() *widget.Button {
+	var lastButton *widget.Button
+	for _, currentObject := range history.container.Objects {
+		currentButton, ok := currentObject.(*widget.Button)
+		if ok {
+			lastButton = currentButton
+		}
+	}
+
+	return lastButton
+}
+
 func (history *History) updateButtonsStyles() {
 	for _, currentObject := range history.container.Objects {
-		currentButton, err := currentObject.(*widget.Button)
-		if err {
+		currentButton, ok := currentObject.(*widget.Button)
+		if ok {
 			if currentButton == history.currentHighlightedButton {
 				currentButton.Style = widget.PrimaryButton
 			} else {
