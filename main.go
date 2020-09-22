@@ -15,7 +15,7 @@ import (
 	"github.com/loloof64/chess-pgn-reviser-fyne/history"
 )
 
-func main() {
+func loadLocales() {
 	lang, err := jibber_jabber.DetectLanguage()
 	if err != nil {
 		lang = "en"
@@ -36,7 +36,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
 
+func buildAppInstance() fyne.App {
 	app := app.New()
 	currentTheme := app.Settings().Theme()
 	if currentTheme == theme.LightTheme() {
@@ -46,8 +48,16 @@ func main() {
 	}
 	app.SetIcon(resourceChessPng)
 
+	return app
+}
+
+func buildMainWindow(app fyne.App) fyne.Window {
 	title := ini.String("general.title")
 	mainWindow := app.NewWindow(title)
+	return mainWindow
+}
+
+func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 
 	boardOrientation := chessboard.BlackAtBottom
 	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
@@ -142,7 +152,14 @@ func main() {
 		gameZone,
 	)
 
-	mainWindow.SetContent(mainContent)
+	return mainContent
+}
 
+func main() {
+	loadLocales()
+	app := buildAppInstance()
+	mainWindow := buildMainWindow(app)
+	mainContent := buildMainContent(mainWindow)
+	mainWindow.SetContent(mainContent)
 	mainWindow.ShowAndRun()
 }
