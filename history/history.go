@@ -90,6 +90,7 @@ type History struct {
 	onPositionRequest func(moveData commonTypes.GameMove) bool
 
 	currentHighlightedButton *widget.Button
+	currentMoveDataIndex     int
 
 	allMovesData []commonTypes.GameMove
 }
@@ -176,6 +177,7 @@ func (history *History) Clear(startMoveNumber int) {
 	history.container.Objects = nil
 	history.currentHighlightedButton = nil
 	history.allMovesData = nil
+	history.currentMoveDataIndex = -1
 	history.currentMoveNumber = startMoveNumber
 	numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
 	history.container.AddObject(numberComponent)
@@ -186,25 +188,25 @@ func (history *History) Clear(startMoveNumber int) {
 // Tries to select the last element.
 func (history *History) RequestLastItemSelection() {
 	lastButton := history.findLastButton()
-	lastMoveData := history.findLastMoveData()
+	lastMoveDataIndex := history.findLastMoveDataIndex()
 
-	if lastButton == nil || lastMoveData == nil {
+	if lastButton == nil || lastMoveDataIndex < 0 {
 		return
 	}
 	if history.onPositionRequest != nil {
-		if history.onPositionRequest(*lastMoveData) {
+		if history.onPositionRequest(history.allMovesData[lastMoveDataIndex]) {
 			history.currentHighlightedButton = lastButton
 			history.updateButtonsStyles()
 		}
 	}
 }
 
-func (history *History) findLastMoveData() *commonTypes.GameMove {
-	var lastMoveData *commonTypes.GameMove
-	for _, currentMoveData := range history.allMovesData {
-		lastMoveData = &currentMoveData
+func (history *History) findLastMoveDataIndex() int {
+	var lastMoveDataIndex int
+	for index, _ := range history.allMovesData {
+		lastMoveDataIndex = index
 	}
-	return lastMoveData
+	return lastMoveDataIndex
 }
 
 func (history *History) findLastButton() *widget.Button {
