@@ -89,8 +89,8 @@ type History struct {
 	container         *fyne.Container
 	onPositionRequest func(moveData commonTypes.GameMove) bool
 
-	currentHighlightedButton *widget.Button
-	currentMoveDataIndex     int
+	currentHighlightedButtonIndex int
+	currentMoveDataIndex          int
 
 	allMovesData []commonTypes.GameMove
 }
@@ -151,11 +151,13 @@ func (history *History) CreateRenderer() fyne.WidgetRenderer {
 // AddMove adds a move to the History widget.
 func (history *History) AddMove(moveData commonTypes.GameMove) {
 	var moveComponent *widget.Button
+	history.currentHighlightedButtonIndex += 1
+	thisButtonIndex := history.currentHighlightedButtonIndex
 
 	moveComponent = widget.NewButton(moveData.Fan, func() {
 		if history.onPositionRequest != nil {
 			if history.onPositionRequest(moveData) {
-				history.currentHighlightedButton = moveComponent
+				history.currentHighlightedButtonIndex = thisButtonIndex
 				history.updateButtonsStyles()
 			}
 		}
@@ -165,6 +167,9 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 	history.allMovesData = append(history.allMovesData, moveData)
 	if moveData.IsBlackMove {
 		history.currentMoveNumber += 1
+		// Though it is not a button, we need to update this index
+		// as buttons and labels are in the same array.
+		history.currentHighlightedButtonIndex += 1
 		numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
 		history.container.AddObject(numberComponent)
 		history.container.Resize(history.preferredSize)
@@ -175,8 +180,10 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 // Clear clears all moves from the History widget.
 func (history *History) Clear(startMoveNumber int) {
 	history.container.Objects = nil
-	history.currentHighlightedButton = nil
 	history.allMovesData = nil
+	// Though it is not a button, we need to update this index
+	// as buttons and labels are in the same array.
+	history.currentHighlightedButtonIndex = 0
 	history.currentMoveDataIndex = -1
 	history.currentMoveNumber = startMoveNumber
 	numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
@@ -187,15 +194,15 @@ func (history *History) Clear(startMoveNumber int) {
 
 // Tries to select the last element.
 func (history *History) RequestLastItemSelection() {
-	lastButton := history.findLastButton()
+	lastButtonIndex := history.findLastButtonIndex()
 	lastMoveDataIndex := history.findLastMoveDataIndex()
 
-	if lastButton == nil || lastMoveDataIndex < 0 {
+	if lastButtonIndex < 0 || lastMoveDataIndex < 0 {
 		return
 	}
 	if history.onPositionRequest != nil {
 		if history.onPositionRequest(history.allMovesData[lastMoveDataIndex]) {
-			history.currentHighlightedButton = lastButton
+			history.currentHighlightedButtonIndex = lastButtonIndex
 			history.updateButtonsStyles()
 		}
 	}
@@ -209,23 +216,23 @@ func (history *History) findLastMoveDataIndex() int {
 	return lastMoveDataIndex
 }
 
-func (history *History) findLastButton() *widget.Button {
-	var lastButton *widget.Button
-	for _, currentObject := range history.container.Objects {
-		currentButton, ok := currentObject.(*widget.Button)
+func (history *History) findLastButtonIndex() int {
+	var lastButtonIndex int
+	for index, currentObject := range history.container.Objects {
+		_, ok := currentObject.(*widget.Button)
 		if ok {
-			lastButton = currentButton
+			lastButtonIndex = index
 		}
 	}
 
-	return lastButton
+	return lastButtonIndex
 }
 
 func (history *History) updateButtonsStyles() {
-	for _, currentObject := range history.container.Objects {
+	for index, currentObject := range history.container.Objects {
 		currentButton, ok := currentObject.(*widget.Button)
 		if ok {
-			if currentButton == history.currentHighlightedButton {
+			if index == history.currentHighlightedButtonIndex {
 				currentButton.Style = widget.PrimaryButton
 			} else {
 				currentButton.Style = widget.DefaultButton
