@@ -239,6 +239,25 @@ func (history *History) RequestPreviousItemSelection() {
 	}
 }
 
+// Tries to select the next element
+func (history *History) RequestNextItemSelection() {
+	nextButtonIndex := history.findNextButtonIndex()
+	nextMoveDataIndex := history.findNextLastMoveDataIndex()
+
+	if history.onPositionRequest != nil {
+		weAreOutsideMoves := nextButtonIndex < 0 || nextMoveDataIndex < 0
+		if weAreOutsideMoves {
+			return
+		} else {
+			if history.onPositionRequest(history.allMovesData[nextMoveDataIndex]) {
+				history.currentHighlightedButtonIndex = nextButtonIndex
+				history.currentMoveDataIndex = nextMoveDataIndex
+				history.updateButtonsStyles()
+			}
+		}
+	}
+}
+
 func (history *History) findLastMoveDataIndex() int {
 	var lastMoveDataIndex int
 	for index, _ := range history.allMovesData {
@@ -277,6 +296,27 @@ func (history *History) findPreviousButtonIndex() int {
 			return index
 		}
 	}
+	return -1
+}
+
+func (history *History) findNextLastMoveDataIndex() int {
+	if history.currentMoveDataIndex >= len(history.allMovesData)-1 {
+		return len(history.allMovesData) - 1
+	} else if len(history.allMovesData) == 0 {
+		return -1
+	} else {
+		return history.currentMoveDataIndex + 1
+	}
+}
+
+func (history *History) findNextButtonIndex() int {
+	for index := history.currentHighlightedButtonIndex + 1; index < len(history.container.Objects); index++ {
+		_, ok := history.container.Objects[index].(*widget.Button)
+		if ok {
+			return index
+		}
+	}
+
 	return -1
 }
 

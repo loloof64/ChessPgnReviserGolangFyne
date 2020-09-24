@@ -62,13 +62,19 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 	boardOrientation := chessboard.BlackAtBottom
 	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
 	historyComponent := history.NewHistory(fyne.NewSize(400, 400))
+
 	gotoPreviousHistoryButton := widget.NewButtonWithIcon("", resourcePreviousSvg, func() {
 		historyComponent.RequestPreviousItemSelection()
+	})
+
+	gotoNextHistoryButton := widget.NewButtonWithIcon("", resourceNextSvg, func() {
+		historyComponent.RequestNextItemSelection()
 	})
 
 	historyButtonsZone := fyne.NewContainerWithLayout(
 		layout.NewHBoxLayout(),
 		gotoPreviousHistoryButton,
+		gotoNextHistoryButton,
 	)
 
 	hideHistoryNavigationToolbar := func() {
