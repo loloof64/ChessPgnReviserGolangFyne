@@ -62,9 +62,34 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 	boardOrientation := chessboard.BlackAtBottom
 	chessboardComponent := chessboard.NewChessBoard(400, &mainWindow)
 	historyComponent := history.NewHistory(fyne.NewSize(400, 400))
-	historyZone := widget.NewVScrollContainer(historyComponent)
+	gotoPreviousHistoryButton := widget.NewButtonWithIcon("", resourcePreviousSvg, func() {
+		historyComponent.RequestPreviousItemSelection()
+	})
+
+	historyButtonsZone := fyne.NewContainerWithLayout(
+		layout.NewHBoxLayout(),
+		gotoPreviousHistoryButton,
+	)
+
+	hideHistoryNavigationToolbar := func() {
+		historyButtonsZone.Hide()
+	}
+
+	showHistoryNavigationToolbar := func() {
+		historyButtonsZone.Show()
+	}
+
+	historyMainContent := widget.NewVScrollContainer(historyComponent)
+	historyMainContent.Resize(fyne.NewSize(400, 400))
+	historyZone := fyne.NewContainerWithLayout(
+		layout.NewBorderLayout(historyButtonsZone, nil, nil, nil),
+		historyButtonsZone,
+		historyMainContent,
+	)
+	hideHistoryNavigationToolbar()
 
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
+		hideHistoryNavigationToolbar()
 		historyComponent.Clear(1)
 		chessboardComponent.NewGame()
 	})
@@ -91,11 +116,13 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 
 		dialogComponent := widget.NewLabel(dialogMessage)
 
-		confirmDialog := dialog.NewCustomConfirm(dialogTitle, confirmButtonText, cancelButtonText, dialogComponent, func(confirmed bool) {
-			if confirmed {
-				chessboardComponent.StopGame()
-			}
-		}, mainWindow)
+		confirmDialog := dialog.NewCustomConfirm(dialogTitle, confirmButtonText,
+			cancelButtonText, dialogComponent, func(confirmed bool) {
+				if confirmed {
+					showHistoryNavigationToolbar()
+					chessboardComponent.StopGame()
+				}
+			}, mainWindow)
 		confirmDialog.Show()
 	})
 
@@ -108,14 +135,17 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 	draw := ini.String("gameResult.draw")
 
 	chessboardComponent.SetOnWhiteWinHandler(func() {
+		showHistoryNavigationToolbar()
 		dialog.ShowInformation(gameFinished, whiteWon, mainWindow)
 	})
 
 	chessboardComponent.SetOnBlackWinHandler(func() {
+		showHistoryNavigationToolbar()
 		dialog.ShowInformation(gameFinished, blackWon, mainWindow)
 	})
 
 	chessboardComponent.SetOnDrawHandler(func() {
+		showHistoryNavigationToolbar()
 		dialog.ShowInformation(gameFinished, draw, mainWindow)
 	})
 
@@ -127,9 +157,10 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 		historyComponent.RequestLastItemSelection()
 	})
 
-	historyComponent.SetOnPositionRequestHandler(func(moveData commonTypes.GameMove) bool {
-		return chessboardComponent.RequestHistoryPosition(moveData)
-	})
+	historyComponent.SetOnPositionRequestHandler(
+		func(moveData commonTypes.GameMove) bool {
+			return chessboardComponent.RequestHistoryPosition(moveData)
+		})
 
 	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {
 		drawAcceptedMessage := ini.String("drawClaim.accepted")
@@ -138,6 +169,7 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 
 		accepted := chessboardComponent.ClaimDraw()
 		if accepted {
+			showHistoryNavigationToolbar()
 			dialog.ShowInformation(gameFinished, drawAcceptedMessage, mainWindow)
 		} else {
 			dialog.ShowInformation(gameFinished, drawRefusedMessage, mainWindow)
@@ -147,7 +179,8 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem,
 		stopGameItem)
 
-	gameZone := fyne.NewContainerWithLayout(layout.NewHBoxLayout(), chessboardComponent, historyZone)
+	gameZone := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
+		chessboardComponent, historyZone)
 
 	mainLayout := layout.NewVBoxLayout()
 	mainContent := fyne.NewContainerWithLayout(

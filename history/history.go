@@ -92,7 +92,8 @@ type History struct {
 	currentHighlightedButtonIndex int
 	currentMoveDataIndex          int
 
-	allMovesData []commonTypes.GameMove
+	allMovesData  []commonTypes.GameMove
+	startPosition string
 }
 
 type historyRenderer struct {
@@ -153,11 +154,14 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 	var moveComponent *widget.Button
 	history.currentHighlightedButtonIndex += 1
 	thisButtonIndex := history.currentHighlightedButtonIndex
+	// Indeed, for now, we haven't added the current move yet.
+	thisMoveDataIndex := len(history.allMovesData)
 
 	moveComponent = widget.NewButton(moveData.Fan, func() {
 		if history.onPositionRequest != nil {
 			if history.onPositionRequest(moveData) {
 				history.currentHighlightedButtonIndex = thisButtonIndex
+				history.currentMoveDataIndex = thisMoveDataIndex
 				history.updateButtonsStyles()
 			}
 		}
@@ -181,6 +185,7 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 func (history *History) Clear(startMoveNumber int) {
 	history.container.Objects = nil
 	history.allMovesData = nil
+	history.startPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 	// Though it is not a button, we need to update this index
 	// as buttons and labels are in the same array.
 	history.currentHighlightedButtonIndex = 0
@@ -203,7 +208,33 @@ func (history *History) RequestLastItemSelection() {
 	if history.onPositionRequest != nil {
 		if history.onPositionRequest(history.allMovesData[lastMoveDataIndex]) {
 			history.currentHighlightedButtonIndex = lastButtonIndex
+			history.currentMoveDataIndex = lastMoveDataIndex
 			history.updateButtonsStyles()
+		}
+	}
+}
+
+// Tries to select the previous element, or to load start position
+func (history *History) RequestPreviousItemSelection() {
+	previousButtonIndex := history.findPreviousButtonIndex()
+	previousMoveDataIndex := history.findPreviousLastMoveDataIndex()
+
+	if history.onPositionRequest != nil {
+		weAreOutsideMoves := previousButtonIndex < 0 || previousMoveDataIndex < 0
+		if weAreOutsideMoves {
+			positionToRequest := commonTypes.GameMove{}
+			positionToRequest.Fen = history.startPosition
+			if history.onPositionRequest(positionToRequest) {
+				history.currentHighlightedButtonIndex = -1
+				history.currentMoveDataIndex = -1
+				history.updateButtonsStyles()
+			}
+		} else {
+			if history.onPositionRequest(history.allMovesData[previousMoveDataIndex]) {
+				history.currentHighlightedButtonIndex = previousButtonIndex
+				history.currentMoveDataIndex = previousMoveDataIndex
+				history.updateButtonsStyles()
+			}
 		}
 	}
 }
@@ -226,6 +257,27 @@ func (history *History) findLastButtonIndex() int {
 	}
 
 	return lastButtonIndex
+}
+
+func (history *History) findPreviousLastMoveDataIndex() int {
+	if history.currentMoveDataIndex < 0 {
+		return -1
+	} else {
+		return history.currentMoveDataIndex - 1
+	}
+}
+
+func (history *History) findPreviousButtonIndex() int {
+	if history.currentHighlightedButtonIndex < 0 {
+		return -1
+	}
+	for index := history.currentHighlightedButtonIndex - 1; index >= 0; index-- {
+		_, ok := history.container.Objects[index].(*widget.Button)
+		if ok {
+			return index
+		}
+	}
+	return -1
 }
 
 func (history *History) updateButtonsStyles() {
