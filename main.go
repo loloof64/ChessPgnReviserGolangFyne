@@ -80,11 +80,14 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 	})
 
 	historyButtonsZone := fyne.NewContainerWithLayout(
-		layout.NewHBoxLayout(),
-		gotoStartPositionButton,
-		gotoPreviousHistoryButton,
-		gotoNextHistoryButton,
-		gotoLastHistoryButton,
+		layout.NewCenterLayout(),
+		fyne.NewContainerWithLayout(
+			layout.NewHBoxLayout(),
+			gotoStartPositionButton,
+			gotoPreviousHistoryButton,
+			gotoNextHistoryButton,
+			gotoLastHistoryButton,
+		),
 	)
 
 	hideHistoryNavigationToolbar := func() {
