@@ -71,10 +71,20 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 		historyComponent.RequestNextItemSelection()
 	})
 
+	gotoStartPositionButton := widget.NewButtonWithIcon("", resourceFirstSvg, func() {
+		historyComponent.RequestStartPositionSelection()
+	})
+
+	gotoLastHistoryButton := widget.NewButtonWithIcon("", resourceLastSvg, func() {
+		historyComponent.RequestLastItemSelection()
+	})
+
 	historyButtonsZone := fyne.NewContainerWithLayout(
 		layout.NewHBoxLayout(),
+		gotoStartPositionButton,
 		gotoPreviousHistoryButton,
 		gotoNextHistoryButton,
+		gotoLastHistoryButton,
 	)
 
 	hideHistoryNavigationToolbar := func() {

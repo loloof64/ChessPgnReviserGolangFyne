@@ -197,6 +197,19 @@ func (history *History) Clear(startMoveNumber int) {
 	history.Refresh()
 }
 
+// Tries to select the start position.
+func (history *History) RequestStartPositionSelection() {
+	history.currentHighlightedButtonIndex = -1
+	history.currentMoveDataIndex = -1
+	history.updateButtonsStyles()
+
+	positionToRequest := commonTypes.GameMove{}
+	positionToRequest.Fen = history.startPosition
+	if history.onPositionRequest != nil {
+		_ = history.onPositionRequest(positionToRequest)
+	}
+}
+
 // Tries to select the last element.
 func (history *History) RequestLastItemSelection() {
 	lastButtonIndex := history.findLastButtonIndex()
