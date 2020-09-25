@@ -141,17 +141,21 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 
 			selectedGamePgn := pgnLoader.Games[0]
 			reader := strings.NewReader(selectedGamePgn)
-			/*selectedGameParsed, err := chess.PGN(reader)
+			selectedGameUpdater, err := chess.PGN(reader)
 
 			if err != nil {
 				fmt.Println(err)
 				dialog.ShowInformation(errorOpeningFileTitle, errorOpeningFileMessage, mainWindow)
 				return
-			}*/
+			}
+
+			selectedGameParsed := chess.NewGame()
+			selectedGameUpdater(selectedGameParsed)
+			selectedGameStartPosition := selectedGameParsed.Positions()[0].String()
 
 			hideHistoryNavigationToolbar()
-			historyComponent.Clear(1)
-			chessboardComponent.NewGame()
+			historyComponent.Clear(selectedGameStartPosition)
+			chessboardComponent.NewGame(selectedGameStartPosition)
 		}, mainWindow)
 		openFileDialog.Show()
 	})

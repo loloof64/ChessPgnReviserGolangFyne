@@ -224,9 +224,8 @@ func NewChessBoard(length int, parent *fyne.Window) *ChessBoard {
 }
 
 // NewGame starts a new game
-func (board *ChessBoard) NewGame() {
-	standardFen := "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-	startFen, _ := chess.FEN(standardFen)
+func (board *ChessBoard) NewGame(startPositionFen string) {
+	startFen, _ := chess.FEN(startPositionFen)
 
 	board.game = *chess.NewGame(chess.UseNotation(chess.LongAlgebraicNotation{}), startFen)
 	board.gameInProgress = true

@@ -3,6 +3,8 @@ package history
 import (
 	"fmt"
 	"image/color"
+	"strconv"
+	"strings"
 
 	"fyne.io/fyne"
 	"fyne.io/fyne/canvas"
@@ -182,10 +184,15 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 }
 
 // Clear clears all moves from the History widget.
-func (history *History) Clear(startMoveNumber int) {
+func (history *History) Clear(startPositionFen string) {
 	history.container.Objects = nil
 	history.allMovesData = nil
-	history.startPosition = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+	history.startPosition = startPositionFen
+	positionParts := strings.Split(startPositionFen, " ")
+	startMoveNumber, err := strconv.Atoi(positionParts[len(positionParts)-1])
+	if err != nil {
+		startMoveNumber = 1
+	}
 	// Though it is not a button, we need to update this index
 	// as buttons and labels are in the same array.
 	history.currentHighlightedButtonIndex = 0

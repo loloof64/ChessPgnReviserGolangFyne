@@ -6,10 +6,12 @@ import (
 	"strings"
 )
 
+// Loader holds all games of a loaded PGN file.
 type Loader struct {
 	Games []string
 }
 
+// LoadPgnFile tries to load all games from a PGN file.
 func LoadPgnFile(path string) (*Loader, error) {
 	fileContent, err := os.Open(path)
 
