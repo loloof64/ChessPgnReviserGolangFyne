@@ -1,6 +1,9 @@
 package main
 
 import (
+	"fmt"
+	"strings"
+
 	"fyne.io/fyne"
 	"fyne.io/fyne/app"
 	"fyne.io/fyne/dialog"
@@ -13,6 +16,8 @@ import (
 	"github.com/loloof64/chess-pgn-reviser-fyne/chessboard"
 	"github.com/loloof64/chess-pgn-reviser-fyne/commonTypes"
 	"github.com/loloof64/chess-pgn-reviser-fyne/history"
+	"github.com/loloof64/chess-pgn-reviser-fyne/pgnLoader"
+	"github.com/notnil/chess"
 )
 
 func loadLocales() {
@@ -107,10 +112,48 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 	)
 	hideHistoryNavigationToolbar()
 
+	errorOpeningFileTitle := ini.String("serialization.errorOpeningFileTitle")
+	errorOpeningFileMessage := ini.String("serialization.errorOpeningFileMessage")
+
 	startGameItem := widget.NewToolbarAction(resourceStartSvg, func() {
-		hideHistoryNavigationToolbar()
-		historyComponent.Clear(1)
-		chessboardComponent.NewGame()
+		openFileDialog := dialog.NewFileOpen(func(fileData fyne.URIReadCloser, err error) {
+			if err != nil {
+				fmt.Println(err)
+				dialog.ShowInformation(errorOpeningFileTitle, errorOpeningFileMessage, mainWindow)
+				return
+			}
+
+			if fileData == nil {
+				return
+			}
+
+			fileNameRune := []rune(fmt.Sprintf("%v", fileData.URI()))
+			// Stripping "file://" prefix
+			filePath := string(fileNameRune[7:])
+
+			pgnLoader, err := pgnLoader.LoadPgnFile(filePath)
+
+			if err != nil {
+				fmt.Println(err)
+				dialog.ShowInformation(errorOpeningFileTitle, errorOpeningFileMessage, mainWindow)
+				return
+			}
+
+			selectedGamePgn := pgnLoader.Games[0]
+			reader := strings.NewReader(selectedGamePgn)
+			/*selectedGameParsed, err := chess.PGN(reader)
+
+			if err != nil {
+				fmt.Println(err)
+				dialog.ShowInformation(errorOpeningFileTitle, errorOpeningFileMessage, mainWindow)
+				return
+			}*/
+
+			hideHistoryNavigationToolbar()
+			historyComponent.Clear(1)
+			chessboardComponent.NewGame()
+		}, mainWindow)
+		openFileDialog.Show()
 	})
 
 	reverseBoardItem := widget.NewToolbarAction(resourceReverseSvg, func() {

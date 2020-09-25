@@ -26,4 +26,4 @@ Font Free Serif downloaded from https://fonts2u.com/download/free-serif.font.
 
 * Do not forget to update bundling.sh and to run `sh bundling.sh` when adding a picture.
 
-* You can build the project with `go build`.
+* You can build the project with `go build` or simply run it with `go run .`.
