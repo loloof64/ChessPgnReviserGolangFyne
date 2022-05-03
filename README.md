@@ -22,7 +22,7 @@ Font Free Serif downloaded from https://fonts2u.com/download/free-serif.font.
 
 ## For developers
 
-* Do not forget to install fyne command tools, if you want to launch the bundle scripts: `go get http://fyne.io/fyne/cmd/fyne`,
+* Do not forget to install fyne command tools, if you want to launch the bundle scripts: `go get fyne.io/fyne/cmd/fyne`,
 
 * Do not forget to update bundling.sh and to run `sh bundling.sh` when adding a picture.
 
