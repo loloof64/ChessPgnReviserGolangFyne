@@ -2,7 +2,7 @@
 
 package chessboard
 
-import "fyne.io/fyne"
+import "fyne.io/fyne/v2"
 
 var resourceChessplt45Svg = &fyne.StaticResource{
 	StaticName: "Chess_plt45.svg",

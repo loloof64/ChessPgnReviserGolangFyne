@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/app"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/theme"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 
 	"github.com/cloudfoundry-attic/jibber_jabber"
 	"github.com/gookit/ini/v2"
@@ -103,7 +104,7 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 		historyButtonsZone.Show()
 	}
 
-	historyMainContent := widget.NewVScrollContainer(historyComponent)
+	historyMainContent := container.NewVScroll(historyComponent)
 	historyMainContent.Resize(fyne.NewSize(400, 400))
 	historyZone := fyne.NewContainerWithLayout(
 		layout.NewBorderLayout(historyButtonsZone, nil, nil, nil),

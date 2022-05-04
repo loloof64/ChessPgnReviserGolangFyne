@@ -6,11 +6,11 @@ import (
 	"math"
 	"strings"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/dialog"
-	"fyne.io/fyne/layout"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/dialog"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/widget"
 
 	"github.com/gookit/ini/v2"
 	"github.com/notnil/chess"
@@ -70,7 +70,7 @@ type ChessBoard struct {
 	parent    *fyne.Window
 	game      chess.Game
 	blackSide BlackSide
-	length    int
+	length    float32
 	lastMove  *lastMove
 
 	movedPiece          *movedPiece
@@ -209,7 +209,7 @@ func imageResourceFromPiece(piece chess.Piece) fyne.StaticResource {
 }
 
 // NewChessBoard creates a new chess board.
-func NewChessBoard(length int, parent *fyne.Window) *ChessBoard {
+func NewChessBoard(length float32, parent *fyne.Window) *ChessBoard {
 	customFen, _ := chess.FEN("8/8/8/8/8/8/8/8 w - - 0 1")
 
 	chessBoard := &ChessBoard{
@@ -410,14 +410,14 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 		return
 	}
 
-	cellsLength := int(float64(board.length) / 9)
-	halfCellsLength := int(float64(cellsLength) / 2)
+	cellsLength := float64(board.length) / 9
+	halfCellsLength := float64(cellsLength) / 2
 
 	position := event.Position
 	// This is really needed to be coded as is !
 	// First file and rank, then bounds test, then adjust values with the board orientation
-	file := int8(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
-	rank := int8(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+	file := int8(math.Floor((float64(position.X)-halfCellsLength) / cellsLength))
+	rank := int8(math.Floor((float64(position.Y)-halfCellsLength) / cellsLength))
 
 	inBounds := file >= 0 && file <= 7 && rank >= 0 && rank <= 7
 	if !inBounds {
@@ -450,7 +450,7 @@ func (board *ChessBoard) startDragAndDrop(event *fyne.DragEvent) {
 	image.FillMode = canvas.ImageFillContain
 	movedPiece := movedPiece{}
 	movedPiece.pieceImage = image
-	movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+	movedPiece.location = fyne.Position{X: position.X - float32(halfCellsLength), Y: position.Y - float32(halfCellsLength)}
 	movedPiece.startCell = commonTypes.Cell{File: file, Rank: rank}
 	movedPiece.endCell = commonTypes.Cell{File: file, Rank: rank}
 	movedPiece.pieceValue = pieceValue
@@ -463,20 +463,20 @@ func (board *ChessBoard) updateDragAndDrop(event *fyne.DragEvent) {
 		return
 	}
 
-	cellsLength := int(float64(board.length) / 9)
-	halfCellsLength := int(float64(cellsLength) / 2)
+	cellsLength := float64(board.length) / 9
+	halfCellsLength := float64(cellsLength) / 2
 
 	position := event.Position
 	var file, rank int8
 	if board.blackSide == BlackAtTop {
-		file = int8(math.Floor(float64(position.X-halfCellsLength) / float64(cellsLength)))
-		rank = int8(7 - int8(math.Floor(float64(position.Y-halfCellsLength)/float64(cellsLength))))
+		file = int8(math.Floor((float64(position.X)-halfCellsLength) / float64(cellsLength)))
+		rank = int8(7 - int8(math.Floor((float64(position.Y)-halfCellsLength) /float64(cellsLength))))
 	} else {
-		file = int8(7 - int8(math.Floor(float64(position.X-halfCellsLength)/float64(cellsLength))))
-		rank = int8(math.Floor(float64(position.Y-halfCellsLength) / float64(cellsLength)))
+		file = int8(7 - int8(math.Floor((float64(position.X)-halfCellsLength)/float64(cellsLength))))
+		rank = int8(math.Floor((float64(position.Y)-halfCellsLength) / float64(cellsLength)))
 	}
 
-	board.movedPiece.location = fyne.Position{X: position.X - halfCellsLength, Y: position.Y - halfCellsLength}
+	board.movedPiece.location = fyne.Position{X: float32(position.X) - float32(halfCellsLength), Y: float32(position.Y) - float32(halfCellsLength)}
 	board.movedPiece.endCell = commonTypes.Cell{File: file, Rank: rank}
 	board.Refresh()
 }
@@ -693,7 +693,7 @@ func (board *ChessBoard) launchPromotionDialog() {
 		knightRes = resourceChessndt45Svg
 	}
 
-	cellsLength := int(float64(board.length) / 9)
+	cellsLength := float32(board.length) / 9
 	commonButtonsSize := fyne.NewSize(cellsLength, cellsLength)
 
 	queenButton := NewIconButton(queenRes, commonButtonsSize, func() {
@@ -732,48 +732,48 @@ func (board *ChessBoard) launchPromotionDialog() {
 }
 
 func (board *ChessBoard) LayoutLastMoveArrowIfNeeded(size fyne.Size) {
-	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
+	minSize := float32(math.Min(float64(size.Width), float64(size.Height)))
+	cellsLength := float32(minSize / 9.0)
 
 	if board.lastMove != nil {
-		var xa, ya, xb, yb int
+		var xa, ya, xb, yb float32
 		if board.blackSide == BlackAtTop {
-			xa = cellsLength + int(board.lastMove.originCell.File)*cellsLength
-			ya = cellsLength + (7-int(board.lastMove.originCell.Rank))*cellsLength
-			xb = cellsLength + int(board.lastMove.targetCell.File)*cellsLength
-			yb = cellsLength + (7-int(board.lastMove.targetCell.Rank))*cellsLength
+			xa = cellsLength + float32(board.lastMove.originCell.File)*cellsLength
+			ya = cellsLength + float32(7-board.lastMove.originCell.Rank)*cellsLength
+			xb = cellsLength + float32(board.lastMove.targetCell.File)*cellsLength
+			yb = cellsLength + float32(7-board.lastMove.targetCell.Rank)*cellsLength
 		} else {
-			xa = cellsLength + (7-int(board.lastMove.originCell.File))*cellsLength
-			ya = cellsLength + int(board.lastMove.originCell.Rank)*cellsLength
-			xb = cellsLength + (7-int(board.lastMove.targetCell.File))*cellsLength
-			yb = cellsLength + int(board.lastMove.targetCell.Rank)*cellsLength
+			xa = cellsLength + float32(7-board.lastMove.originCell.File)*cellsLength
+			ya = cellsLength + float32(board.lastMove.originCell.Rank)*cellsLength
+			xb = cellsLength + float32(7-board.lastMove.targetCell.File)*cellsLength
+			yb = cellsLength + float32(board.lastMove.targetCell.Rank)*cellsLength
 		}
-		arrowWidth := int(float64(cellsLength) * 0.2)
-		arrowLengthPercentage := 0.25
-		lineThickness := float32(cellsLength) * 0.1
+		arrowWidth := cellsLength * float32(0.2)
+		arrowLengthPercentage := float32(0.25)
+		lineThickness := cellsLength * float32(0.1)
 		board.makeArrow(xa, ya, xb, yb, arrowWidth, arrowLengthPercentage, lineThickness)
 	}
 }
 
 // based on http://xymaths.free.fr/Informatique-Programmation/javascript/canvas-dessin-fleche.php
-func (board *ChessBoard) makeArrow(xa int, ya int, xb int, yb int,
-	arrowWidth int, arrowLengthPercentage float64, lineThickness float32) {
+func (board *ChessBoard) makeArrow(xa float32, ya float32, xb float32, yb float32,
+	arrowWidth float32, arrowLengthPercentage float32, lineThickness float32) {
 
 	arrowColor := color.RGBA{100, 90, 200, 0xff}
 
 	deltaX := float64(xb - xa)
 	deltaY := float64(yb - ya)
-	abLength := math.Sqrt(deltaX*deltaX + deltaY*deltaY)
-	arrowLength := int(arrowLengthPercentage * abLength)
+	abLength := float32(math.Sqrt(deltaX*deltaX + deltaY*deltaY))
+	arrowLength := float32(arrowLengthPercentage * abLength)
 
-	xc := xb + int(float64(arrowLength*(xa-xb))/abLength)
-	yc := yb + int(float64(arrowLength*(ya-yb))/abLength)
+	xc := xb + float32(arrowLength*(xa-xb))/abLength
+	yc := yb + float32(arrowLength*(ya-yb))/abLength
 
-	xd := xc + int(float64(arrowWidth*(ya-yb))/abLength)
-	yd := yc + int(float64(arrowWidth*(xb-xa))/abLength)
+	xd := xc + float32(arrowWidth*(ya-yb))/abLength
+	yd := yc + float32(arrowWidth*(xb-xa))/abLength
 
-	xe := xc - int(float64(arrowWidth*(ya-yb))/abLength)
-	ye := yc - int(float64(arrowWidth*(xb-xa))/abLength)
+	xe := xc - float32(arrowWidth*(ya-yb))/abLength
+	ye := yc - float32(arrowWidth*(xb-xa))/abLength
 
 	baseLine := *canvas.NewLine(arrowColor)
 	baseLine.StrokeWidth = lineThickness

@@ -4,8 +4,8 @@ import (
 	"image/color"
 	"math"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
 	"github.com/notnil/chess"
 )
 
@@ -110,19 +110,19 @@ func (renderer Renderer) Destroy() {
 
 func (renderer Renderer) layoutCells(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
-	halfCellsLength := cellsLength / 2
-	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
+	cellsLength := float32(minSize / 9.0)
+	halfCellsLength := float32(cellsLength / 2)
+	cellsSize := fyne.Size{Width: cellsLength, Height: cellsLength}
 
 	for lineIndex, lineValues := range renderer.cells {
 		for colIndex, cellValue := range lineValues {
-			var x, y int
+			var x, y float32
 			if renderer.boardWidget.blackSide == BlackAtTop {
-				x = halfCellsLength + colIndex*cellsLength
-				y = halfCellsLength + (7-lineIndex)*cellsLength
+				x = halfCellsLength + float32(colIndex)*cellsLength
+				y = halfCellsLength + float32(7-lineIndex)*cellsLength
 			} else {
-				x = halfCellsLength + (7-colIndex)*cellsLength
-				y = halfCellsLength + lineIndex*cellsLength
+				x = halfCellsLength + float32(7-colIndex)*cellsLength
+				y = halfCellsLength + float32(lineIndex)*cellsLength
 			}
 			cellPosition := fyne.Position{X: x, Y: y}
 
@@ -134,19 +134,19 @@ func (renderer Renderer) layoutCells(size fyne.Size) {
 
 func (renderer Renderer) layoutPieces(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
-	halfCellsLength := cellsLength / 2
-	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
+	cellsLength := float32(minSize / 9.0)
+	halfCellsLength := float32(cellsLength / 2)
+	cellsSize := fyne.Size{Width: cellsLength, Height: cellsLength}
 
 	for lineIndex, lineValues := range renderer.cells {
 		for colIndex := range lineValues {
-			var x, y int
+			var x, y float32
 			if renderer.boardWidget.blackSide == BlackAtTop {
-				x = halfCellsLength + colIndex*cellsLength
-				y = halfCellsLength + (7-lineIndex)*cellsLength
+				x = halfCellsLength + float32(colIndex)*cellsLength
+				y = halfCellsLength + float32(7-lineIndex)*cellsLength
 			} else {
-				x = halfCellsLength + (7-colIndex)*cellsLength
-				y = halfCellsLength + lineIndex*cellsLength
+				x = halfCellsLength + float32(7-colIndex)*cellsLength
+				y = halfCellsLength + float32(lineIndex)*cellsLength
 			}
 			cellPosition := fyne.Position{X: x, Y: y}
 
@@ -164,19 +164,19 @@ func (renderer Renderer) layoutFilesCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 
-	coordsFontSize := int(float64(cellsLength) * 0.25)
+	coordsFontSize := float32(cellsLength) * float32(0.25)
 
-	fileCoordsOffset := int(float64(cellsLength) * 0.95)
+	fileCoordsOffset := float32(cellsLength) * float32(0.95)
 
 	for file := 0; file < 8; file++ {
-		var x int
+		var x float32
 		if renderer.boardWidget.blackSide == BlackAtTop {
-			x = fileCoordsOffset + cellsLength*file
+			x = fileCoordsOffset + float32(cellsLength*file)
 		} else {
-			x = fileCoordsOffset + cellsLength*(7-file)
+			x = fileCoordsOffset + float32(cellsLength*(7-file))
 		}
-		yTop := int(float64(cellsLength) * 0.015)
-		yBottom := int(float64(cellsLength) * 8.515)
+		yTop := float32(cellsLength) * float32(0.015)
+		yBottom := float32(cellsLength) * float32(8.515)
 
 		topCoord := renderer.filesCoords[0][file]
 		topCoord.TextStyle = fyne.TextStyle{Bold: true}
@@ -192,21 +192,21 @@ func (renderer Renderer) layoutFilesCoordinates(size fyne.Size) {
 
 func (renderer Renderer) layoutRanksCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
+	cellsLength := float32(minSize / 9.0)
 
-	coordsFontSize := int(float64(cellsLength) * 0.25)
+	coordsFontSize := float32(cellsLength) * float32(0.25)
 
-	rankCoordsOffset := int(float64(cellsLength) * 0.8)
+	rankCoordsOffset := float32(cellsLength) * float32(0.8)
 
 	for rank := 0; rank < 8; rank++ {
-		var y int
+		var y float32
 		if renderer.boardWidget.blackSide == BlackAtTop {
-			y = rankCoordsOffset + cellsLength*rank
+			y = rankCoordsOffset + cellsLength * float32(rank)
 		} else {
-			y = rankCoordsOffset + cellsLength*(7-rank)
+			y = rankCoordsOffset + cellsLength * float32(7-rank)
 		}
-		xLeft := int(float64(cellsLength) * 0.2)
-		xRight := int(float64(cellsLength) * 8.7)
+		xLeft := float32(cellsLength) * float32(0.2)
+		xRight := float32(cellsLength) * float32(8.7)
 
 		leftCoord := renderer.ranksCoords[0][rank]
 		leftCoord.TextStyle = fyne.TextStyle{Bold: true}
@@ -222,10 +222,10 @@ func (renderer Renderer) layoutRanksCoordinates(size fyne.Size) {
 
 func (renderer Renderer) layoutPlayerTurn(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
-	halfCellsLength := cellsLength / 2
+	cellsLength := float32(minSize / 9.0)
+	halfCellsLength := cellsLength / float32(2)
 
-	turnCirclePlace := int(float64(cellsLength) * 8.5)
+	turnCirclePlace := cellsLength * float32(8.5)
 	turnCircle := renderer.playerTurn
 	turnCircle.Resize(fyne.Size{Width: halfCellsLength, Height: halfCellsLength})
 	turnCircle.Move(fyne.Position{X: turnCirclePlace, Y: turnCirclePlace})
@@ -242,8 +242,8 @@ func (renderer Renderer) updatePlayerTurn() {
 
 func (renderer Renderer) layoutMovedPieceIfAny(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := int(minSize / 9.0)
-	cellsSize := fyne.Size{Width: int(cellsLength), Height: int(cellsLength)}
+	cellsLength := float32(minSize / 9.0)
+	cellsSize := fyne.Size{Width: cellsLength, Height: cellsLength}
 
 	if renderer.boardWidget.dragndropInProgress {
 		renderer.boardWidget.movedPiece.pieceImage.Resize(cellsSize)

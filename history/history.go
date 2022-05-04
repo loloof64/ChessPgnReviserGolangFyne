@@ -6,22 +6,24 @@ import (
 	"strconv"
 	"strings"
 
-	"fyne.io/fyne"
-	"fyne.io/fyne/canvas"
-	"fyne.io/fyne/theme"
-	"fyne.io/fyne/widget"
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/layout"
+	"fyne.io/fyne/v2/theme"
+	"fyne.io/fyne/v2/widget"
 
 	"github.com/loloof64/chess-pgn-reviser-fyne/commonTypes"
 )
 
 // HistoryLayout defines the layout of the History widget.
 type HistoryLayout struct {
-	width int
+	width float32
 	gap   fyne.Size
 }
 
 func (l HistoryLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
-	currMaxH, w, h := 0, 0, 0
+	currMaxH, w, h := float32(0), float32(0), float32(0)
 
 	for _, obj := range objects {
 		childSize := obj.MinSize()
@@ -49,7 +51,7 @@ func (l HistoryLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 
 func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Size) {
 	pos := fyne.NewPos(0, 0)
-	w, h, currMaxH := 0, 0, 0
+	w, h, currMaxH := float32(0), float32(0), float32(0)
 
 	for _, o := range objects {
 		size := o.MinSize()
@@ -76,7 +78,7 @@ func (l HistoryLayout) Layout(objects []fyne.CanvasObject, containerSize fyne.Si
 	}
 }
 
-func newHistoryLayout(width int) HistoryLayout {
+func newHistoryLayout(width float32) HistoryLayout {
 	return HistoryLayout{width: width, gap: fyne.NewSize(5, 8)}
 }
 
@@ -168,6 +170,7 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 			}
 		}
 	})
+	
 	history.container.AddObject(moveComponent)
 	history.container.Resize(history.preferredSize)
 	history.allMovesData = append(history.allMovesData, moveData)
@@ -345,9 +348,13 @@ func (history *History) updateButtonsStyles() {
 		currentButton, ok := currentObject.(*widget.Button)
 		if ok {
 			if index == history.currentHighlightedButtonIndex {
-				currentButton.Style = widget.PrimaryButton
+				history.container.Objects[index] = container.New(
+					layout.NewMaxLayout(),
+					canvas.NewRectangle(color.NRGBA{R: 100, G: 30, B: 255, A: 0}),
+					currentButton,
+				)
 			} else {
-				currentButton.Style = widget.DefaultButton
+				history.container.Objects[index] = currentButton
 			}
 		}
 	}
