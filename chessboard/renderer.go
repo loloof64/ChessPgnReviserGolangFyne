@@ -163,7 +163,7 @@ func (renderer Renderer) layoutFilesCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := int(minSize / 9.0)
 
-	coordsFontSize := float32(cellsLength) * float32(0.25)
+	coordsFontSize := float32(cellsLength) * float32(0.35)
 
 	fileCoordsOffset := float32(cellsLength) * float32(0.95)
 
@@ -193,7 +193,7 @@ func (renderer Renderer) layoutRanksCoordinates(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
 	cellsLength := float32(minSize / 9.0)
 
-	coordsFontSize := float32(cellsLength) * float32(0.25)
+	coordsFontSize := float32(cellsLength) * float32(0.35)
 
 	rankCoordsOffset := float32(cellsLength) * float32(0.8)
 
