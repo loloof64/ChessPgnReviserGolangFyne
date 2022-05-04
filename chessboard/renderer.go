@@ -109,19 +109,19 @@ func (renderer Renderer) Destroy() {
 
 func (renderer Renderer) layoutCells(size fyne.Size) {
 	minSize := math.Min(float64(size.Width), float64(size.Height))
-	cellsLength := float32(minSize / 9.0)
-	halfCellsLength := float32(cellsLength / 2)
-	cellsSize := fyne.Size{Width: cellsLength, Height: cellsLength}
+	cellsLength := int(minSize / 9.0)
+	halfCellsLength := int(cellsLength / 2)
+	cellsSize := fyne.Size{Width: float32(cellsLength), Height: float32(cellsLength)}
 
 	for lineIndex, lineValues := range renderer.cells {
 		for colIndex, cellValue := range lineValues {
 			var x, y float32
 			if renderer.boardWidget.blackSide == BlackAtTop {
-				x = halfCellsLength + float32(colIndex)*cellsLength
-				y = halfCellsLength + float32(7-lineIndex)*cellsLength
+				x = float32(halfCellsLength + colIndex*cellsLength)
+				y = float32(halfCellsLength + (7-lineIndex)*cellsLength)
 			} else {
-				x = halfCellsLength + float32(7-colIndex)*cellsLength
-				y = halfCellsLength + float32(lineIndex)*cellsLength
+				x = float32(halfCellsLength + (7-colIndex)*cellsLength)
+				y = float32(halfCellsLength + lineIndex*cellsLength)
 			}
 			cellPosition := fyne.Position{X: x, Y: y}
 
