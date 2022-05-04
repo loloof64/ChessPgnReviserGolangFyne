@@ -13,6 +13,7 @@ import (
 type Renderer struct {
 	boardWidget *ChessBoard
 
+	background	*canvas.Rectangle
 	cells       [8][8]*canvas.Rectangle
 	filesCoords [2][8]*canvas.Text
 	ranksCoords [2][8]*canvas.Text
@@ -45,14 +46,12 @@ func (renderer Renderer) Refresh() {
 	canvas.Refresh(renderer.boardWidget)
 }
 
-// BackgroundColor sets the board background color.
-func (renderer Renderer) BackgroundColor() color.Color {
-	return color.RGBA{20, 110, 200, 0xff}
-}
-
 // Objects returns the objects of the canvas of the renderer.
 func (renderer Renderer) Objects() []fyne.CanvasObject {
 	result := make([]fyne.CanvasObject, 0, 170)
+
+	renderer.background.Resize(renderer.MinSize())
+	result = append(result, renderer.background)
 
 	for rank := 0; rank < 8; rank++ {
 		for file := 0; file < 8; file++ {
@@ -201,9 +200,9 @@ func (renderer Renderer) layoutRanksCoordinates(size fyne.Size) {
 	for rank := 0; rank < 8; rank++ {
 		var y float32
 		if renderer.boardWidget.blackSide == BlackAtTop {
-			y = rankCoordsOffset + cellsLength * float32(rank)
+			y = rankCoordsOffset + cellsLength*float32(rank)
 		} else {
-			y = rankCoordsOffset + cellsLength * float32(7-rank)
+			y = rankCoordsOffset + cellsLength*float32(7-rank)
 		}
 		xLeft := float32(cellsLength) * float32(0.2)
 		xRight := float32(cellsLength) * float32(8.7)

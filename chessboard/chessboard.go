@@ -93,6 +93,7 @@ type ChessBoard struct {
 func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	board.ExtendBaseWidget(board)
 
+	background := canvas.NewRectangle(color.NRGBA{R: 20, G: 110, B: 200, A: 0xff})
 	cells := [8][8]*canvas.Rectangle{}
 	pieces := [8][8]*canvas.Image{}
 	filesCoords := [2][8]*canvas.Text{}
@@ -107,6 +108,7 @@ func (board *ChessBoard) CreateRenderer() fyne.WidgetRenderer {
 	board.pieces = pieces
 
 	return Renderer{
+		background: background,
 		boardWidget: board,
 		cells:       cells,
 		filesCoords: filesCoords,
