@@ -229,22 +229,7 @@ func buildMainContent(mainWindow fyne.Window) fyne.CanvasObject {
 			return chessboardComponent.RequestHistoryPosition(moveData)
 		})
 
-	claimDrawItem := widget.NewToolbarAction(resourceAgreementSvg, func() {
-		drawAcceptedMessage := ini.String("drawClaim.accepted")
-
-		drawRefusedMessage := ini.String("drawClaim.rejected")
-
-		accepted := chessboardComponent.ClaimDraw()
-		if accepted {
-			showHistoryNavigationToolbar()
-			dialog.ShowInformation(gameFinished, drawAcceptedMessage, mainWindow)
-		} else {
-			dialog.ShowInformation(gameFinished, drawRefusedMessage, mainWindow)
-		}
-	})
-
-	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, claimDrawItem,
-		stopGameItem)
+	toolbar := widget.NewToolbar(startGameItem, reverseBoardItem, stopGameItem)
 
 	gameZone := fyne.NewContainerWithLayout(layout.NewHBoxLayout(),
 		chessboardComponent, historyZone)
