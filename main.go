@@ -52,7 +52,7 @@ func buildAppInstance() fyne.App {
 	} else {
 		app.Settings().SetTheme(&CustomDarkTheme{})
 	}
-	app.SetIcon(resourceChessPng)
+	app.SetIcon(resourceChessSvg)
 
 	return app
 }
