@@ -155,13 +155,13 @@ func (history *History) CreateRenderer() fyne.WidgetRenderer {
 
 // AddMove adds a move to the History widget.
 func (history *History) AddMove(moveData commonTypes.GameMove) {
-	var moveComponent *widget.Button
+	var moveComponent *fyne.Container
 	history.currentHighlightedButtonIndex += 1
 	thisButtonIndex := history.currentHighlightedButtonIndex
 	// Indeed, for now, we haven't added the current move yet.
 	thisMoveDataIndex := len(history.allMovesData)
 
-	moveComponent = widget.NewButton(moveData.Fan, func() {
+	moveButton := widget.NewButton(moveData.Fan, func() {
 		if history.onPositionRequest != nil {
 			if history.onPositionRequest(moveData) {
 				history.currentHighlightedButtonIndex = thisButtonIndex
@@ -170,7 +170,12 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 			}
 		}
 	})
-	
+	moveComponent = container.New(
+		layout.NewMaxLayout(),
+		canvas.NewRectangle(color.Transparent),
+		moveButton,
+	)
+
 	history.container.AddObject(moveComponent)
 	history.container.Resize(history.preferredSize)
 	history.allMovesData = append(history.allMovesData, moveData)
@@ -182,8 +187,8 @@ func (history *History) AddMove(moveData commonTypes.GameMove) {
 		numberComponent := widget.NewLabel(fmt.Sprintf("%v.", history.currentMoveNumber))
 		history.container.AddObject(numberComponent)
 		history.container.Resize(history.preferredSize)
+		history.Refresh()
 	}
-	history.Refresh()
 }
 
 // Clear clears all moves from the History widget.
@@ -283,7 +288,7 @@ func (history *History) RequestNextItemSelection() {
 
 func (history *History) findLastMoveDataIndex() int {
 	var lastMoveDataIndex int
-	for index, _ := range history.allMovesData {
+	for index := range history.allMovesData {
 		lastMoveDataIndex = index
 	}
 	return lastMoveDataIndex
@@ -292,7 +297,7 @@ func (history *History) findLastMoveDataIndex() int {
 func (history *History) findLastButtonIndex() int {
 	var lastButtonIndex int
 	for index, currentObject := range history.container.Objects {
-		_, ok := currentObject.(*widget.Button)
+		_, ok := currentObject.(*fyne.Container)
 		if ok {
 			lastButtonIndex = index
 		}
@@ -314,7 +319,7 @@ func (history *History) findPreviousButtonIndex() int {
 		return -1
 	}
 	for index := history.currentHighlightedButtonIndex - 1; index >= 0; index-- {
-		_, ok := history.container.Objects[index].(*widget.Button)
+		_, ok := history.container.Objects[index].(*fyne.Container)
 		if ok {
 			return index
 		}
@@ -334,7 +339,7 @@ func (history *History) findNextLastMoveDataIndex() int {
 
 func (history *History) findNextButtonIndex() int {
 	for index := history.currentHighlightedButtonIndex + 1; index < len(history.container.Objects); index++ {
-		_, ok := history.container.Objects[index].(*widget.Button)
+		_, ok := history.container.Objects[index].(*fyne.Container)
 		if ok {
 			return index
 		}
@@ -345,16 +350,18 @@ func (history *History) findNextButtonIndex() int {
 
 func (history *History) updateButtonsStyles() {
 	for index, currentObject := range history.container.Objects {
-		currentButton, ok := currentObject.(*widget.Button)
-		if ok {
-			if index == history.currentHighlightedButtonIndex {
-				history.container.Objects[index] = container.New(
-					layout.NewMaxLayout(),
-					canvas.NewRectangle(color.NRGBA{R: 100, G: 30, B: 255, A: 0}),
-					currentButton,
-				)
-			} else {
-				history.container.Objects[index] = currentButton
+		currentButtonZone, buttonZoneOk := currentObject.(*fyne.Container)
+		if buttonZoneOk {
+			_, buttonOk := currentButtonZone.Objects[1].(*widget.Button)
+			if buttonOk {
+				var fillColor color.Color
+				if index == history.currentHighlightedButtonIndex {
+					fillColor = color.NRGBA{R: 100, G: 30, B: 255, A: 255}
+				} else {
+					fillColor = color.Transparent
+				}
+				var currentButtonBackground = currentButtonZone.Objects[0].(*canvas.Rectangle)
+				currentButtonBackground.FillColor = fillColor
 			}
 		}
 	}
